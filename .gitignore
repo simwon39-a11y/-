@@ -42,6 +42,9 @@ next-env.d.ts
 
 /src/generated/prisma
 /dev.db
+*.zip
+scripts/test-storage.js
+scripts/debug-storage.js
 
 # Logs
 logs

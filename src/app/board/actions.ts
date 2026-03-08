@@ -3,10 +3,7 @@
 import db from '@/lib/db';
 
 import { PostCategory } from '@prisma/client';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
 import { revalidatePath } from 'next/cache';
-
 /**
  * 특정 카테고리의 모든 게시물을 가져옵니다. (작성자 정보 포함)
  */
@@ -65,18 +62,28 @@ export async function createPostAction(formData: FormData) {
 
         // 2. 사진이 있으면 저장
         if (files && files.length > 0) {
+            const { supabase } = await import('@/lib/supabase');
             for (const file of files) {
                 if (file.size === 0) continue;
+
                 const fileName = `${Date.now()}_${file.name}`;
-                const relativePath = `/uploads/${fileName}`;
-                const absolutePath = join(process.cwd(), 'public', 'uploads', fileName);
-                const bytes = await file.arrayBuffer();
-                const buffer = Buffer.from(bytes);
-                await writeFile(absolutePath, buffer);
+                const { data, error } = await supabase.storage
+                    .from('images')
+                    .upload(fileName, file);
+
+                if (error) {
+                    console.error('Supabase upload error:', error);
+                    continue;
+                }
+
+                // Public URL 가져오기 (버킷이 public으로 설정되어 있어야 함)
+                const { data: { publicUrl } } = supabase.storage
+                    .from('images')
+                    .getPublicUrl(fileName);
 
                 await db.postImage.create({
                     data: {
-                        url: relativePath,
+                        url: publicUrl,
                         postId: post.id
                     }
                 });
