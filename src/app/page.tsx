@@ -1,8 +1,18 @@
 import Link from 'next/link';
 import InstallPWA from '@/components/InstallPWA';
+import { getServerUser } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
+export default async function Home() {
+  const user = await getServerUser();
+
+  // 이미 로그인된 사용자라면 대시보드로 바로 보냅니다.
+  if (user) {
+    redirect('/dashboard');
+  }
+
   return (
+
     <main style={{ padding: 'var(--spacing-lg)', maxWidth: '600px', margin: '0 auto' }}>
       <header style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{ color: 'var(--accent-primary)', marginBottom: '10px', fontSize: '36px' }}>
