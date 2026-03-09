@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useTransition, Suspense } from 'react';
+import { useState, useEffect, useTransition, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getMessagesAction, sendMessageAction, getUserInfoAction, getChatListAction } from './actions';
@@ -19,6 +19,14 @@ function ChatContent() {
     const [isPending, startTransition] = useTransition();
     const [user, setUser] = useState<any>(null);
     const [otherUser, setOtherUser] = useState<any>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    // 새 메시지가 오거나 방이 바뀌면 하단으로 스크롤
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [messages, otherId]);
 
     useEffect(() => {
         const userStr = localStorage.getItem('user');
@@ -114,7 +122,7 @@ function ChatContent() {
                 <Link href="/chat" style={{ textDecoration: 'none', color: 'var(--text-secondary)' }}>나가기</Link>
             </header>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 {messages.length > 0 ? messages.map((msg) => {
                     const isMe = msg.senderId === user?.id;
 
@@ -157,7 +165,6 @@ function ChatContent() {
     );
 }
 
-
 export default function ChatRoom() {
     return (
         <Suspense fallback={<div>불러오는 중...</div>}>
@@ -165,4 +172,5 @@ export default function ChatRoom() {
         </Suspense>
     );
 }
+
 
