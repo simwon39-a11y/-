@@ -315,9 +315,11 @@ export default function DashboardClient({
                         <button
                             onClick={async () => {
                                 const res = await sendTestPushAction();
-                                if (res.success) alert(res.message);
-                                else alert('오류: ' + res.message);
+                                if (res && res.success) alert(res.message);
+                                else if (res) alert('오류: ' + res.message);
+                                else alert('푸시 요청 중 알 수 없는 오류가 발생했습니다.');
                             }}
+
                             style={{ backgroundColor: '#fff3e0', border: '1px solid #ff9800', color: '#e65100', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
                         >
                             🚀 실제 푸시 테스트
