@@ -25,6 +25,7 @@ export default function DashboardClient({
 }: DashboardClientProps) {
     const [user] = useState<any>(initialUser);
     const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails);
+    const [pushStatus, setPushStatus] = useState<'granted' | 'denied' | 'default' | 'loading'>('loading');
     const router = useRouter();
 
     useEffect(() => {
@@ -32,7 +33,13 @@ export default function DashboardClient({
             localStorage.setItem('user', JSON.stringify(initialUser));
         }
 
+        // 알림 권한 상태 확인
+        if ('Notification' in window) {
+            setPushStatus(Notification.permission);
+        }
+
         // 읽지 않은 수 상세 정보 가져오기
+
         async function fetchUnread() {
             try {
                 const res = await fetch('/api/unread');
@@ -88,7 +95,13 @@ export default function DashboardClient({
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
+                <div style={{ fontSize: '12px', marginTop: '5px' }}>
+                    알림 상태: {pushStatus === 'granted' ? <span style={{ color: 'green' }}>✅ 활성화됨</span> :
+                        pushStatus === 'denied' ? <span style={{ color: 'red' }}>❌ 차단됨 (설정 필요)</span> :
+                            <span style={{ color: 'orange' }}>⚠️ 확인 중/미허용</span>}
+                </div>
             </header>
+
 
             {/* 1. 최신 공지사항 */}
             <section className="card" style={{ marginBottom: 'var(--spacing-md)', border: '2px solid var(--accent-primary)', position: 'relative' }}>
