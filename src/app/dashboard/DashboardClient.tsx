@@ -33,8 +33,10 @@ export default function DashboardClient({
     const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails);
     const [pushStatus, setPushStatus] = useState<'granted' | 'denied' | 'default' | 'loading'>('loading');
     const [isSubscribed, setIsSubscribed] = useState<boolean | 'loading'>('loading');
+    const [subCount, setSubCount] = useState<number>(0);
     const [swVersion, setSwVersion] = useState<string>('확인 중...');
     const router = useRouter();
+
 
 
     // 읽지 않은 수 상세 정보 가져오기
@@ -47,7 +49,9 @@ export default function DashboardClient({
                 setUnreadDetails(data.details);
                 if (data.pushCount !== undefined) {
                     setIsSubscribed(data.pushCount > 0);
+                    setSubCount(data.pushCount);
                 }
+
                 // 실시간 배지 업데이트 추가
                 if ('setAppBadge' in navigator && data.totalUnread !== undefined) {
                     const count = parseInt(data.totalUnread, 10);
@@ -187,6 +191,26 @@ export default function DashboardClient({
         }
     };
 
+    const resetPush = async () => {
+        if (!confirm('푸시 설정을 초기화하고 다시 등록하시겠습니까?')) return;
+        try {
+            // 1. 서비스 워커 구독 해제
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+                await subscription.unsubscribe();
+            }
+
+            // 2. 서버에서 모든 구독 정보 삭제 요청 (별도의 API가 필요하지만, 재등록 시 upsert되므로 일단 클라이언트에서만 초기화 시도)
+            alert('설정이 초기화되었습니다. 다시 [지금 서버에 등록하기] 버튼을 눌러주세요.');
+            setIsSubscribed(false);
+            setSubCount(0);
+        } catch (err) {
+            alert('초기화 오류: ' + err);
+        }
+    };
+
+
     function urlBase64ToUint8Array(base64String: string) {
         const padding = '='.repeat((4 - base64String.length % 4) % 4);
         const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -211,8 +235,9 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.2270
+                    버전: 26.03.09.2315
                 </div>
+
 
 
 
@@ -294,10 +319,17 @@ export default function DashboardClient({
                     <div style={{ fontSize: '11px', color: '#888', marginTop: '8px', borderTop: '1px solid #eee', paddingTop: '8px' }}>
                         <b>[상태 진단]</b><br />
                         기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>} |
-                        SW 버전: <span style={{ color: swVersion === '26.03.09.2255' ? 'green' : 'orange' }}>{swVersion}</span> <br />
+                        모드: {typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? <span style={{ color: 'green' }}>📱 앱 모드</span> : <span style={{ color: 'orange' }}>🌐 브라우저 모드</span>} <br />
+                        SW 버전: <span style={{ color: swVersion === '26.03.09.2255' ? 'green' : 'orange' }}>{swVersion}</span> |
+                        등록된 기기 수: {subCount}대 <br />
                         키 상태: {vapidPublicKey ? <span style={{ color: 'green' }}>✅ 있음</span> : <span style={{ color: 'red' }}>❌ 없음</span>} <br />
                         현재 읽지 않은 총 수: <span style={{ color: 'blue', fontWeight: 'bold' }}>{unreadDetails ? (unreadDetails.messages + unreadDetails.notices + unreadDetails.resources + unreadDetails.frees) : 0}개</span>
                     </div>
+
+                    <button onClick={resetPush} style={{ marginTop: '10px', width: '100%', fontSize: '11px', color: '#888', background: 'none', border: '1px solid #ddd', cursor: 'pointer', padding: '4px' }}>
+                        ⚙️ 푸시 설정이 꼬였나요? (설정 초기화)
+                    </button>
+
 
 
                 </div>

@@ -51,8 +51,14 @@ export async function sendPushNotification(userId: number, title: string, body: 
     });
 
 
-    await Promise.all(notifications);
+    const results = await Promise.all(notifications);
+    const successCount = results.filter(r => r !== undefined).length;
+    return {
+        total: subscriptions.length,
+        success: successCount
+    };
 }
+
 
 /**
  * 모든 구독자에게 푸시 알림을 보냅니다.
