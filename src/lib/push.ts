@@ -1,5 +1,6 @@
 import webpush from 'web-push';
 import db from './db';
+import { getUnreadCounts } from './unread';
 
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
@@ -23,6 +24,11 @@ export async function sendPushNotification(userId: number, title: string, body: 
         where: { userId }
     });
 
+    if (subscriptions.length === 0) return;
+
+    // 해당 사용자의 최신 읽지 않은 수도 함께 보냅니다.
+    const unread = await getUnreadCounts(userId);
+
     const notifications = (subscriptions as any[]).map(sub => {
         const pushSubscription = {
             endpoint: sub.endpoint,
@@ -34,7 +40,7 @@ export async function sendPushNotification(userId: number, title: string, body: 
 
         return webpush.sendNotification(
             pushSubscription,
-            JSON.stringify({ title, body, url })
+            JSON.stringify({ title, body, url, badge: unread.totalUnread })
         ).catch(async (err: any) => {
             if (err.statusCode === 404 || err.statusCode === 410) {
                 // 만료된 구독 정보 삭제
@@ -56,7 +62,10 @@ export async function sendGlobalPushNotification(title: string, body: string, ur
         where: exceptUserId ? { userId: { not: exceptUserId } } : {}
     });
 
-    const notifications = (subscriptions as any[]).map(sub => {
+    // 사용자별로 캐싱하여 중복 계산 방지
+    const userBadgeCache: { [userId: number]: number } = {};
+
+    const notifications = (subscriptions as any[]).map(async (sub) => {
         const pushSubscription = {
             endpoint: sub.endpoint,
             keys: {
@@ -65,9 +74,20 @@ export async function sendGlobalPushNotification(title: string, body: string, ur
             }
         };
 
+        // 이 구독자의 읽지 않은 수 가져오기 (캐시 활용)
+        if (userBadgeCache[sub.userId] === undefined) {
+            const unread = await getUnreadCounts(sub.userId);
+            userBadgeCache[sub.userId] = unread.totalUnread;
+        }
+
         return webpush.sendNotification(
             pushSubscription,
-            JSON.stringify({ title, body, url })
+            JSON.stringify({
+                title,
+                body,
+                url,
+                badge: userBadgeCache[sub.userId]
+            })
         ).catch(async (err: any) => {
             if (err.statusCode === 404 || err.statusCode === 410) {
                 await (db as any).pushSubscription.delete({ where: { id: sub.id } });
@@ -78,4 +98,5 @@ export async function sendGlobalPushNotification(title: string, body: string, ur
 
     await Promise.all(notifications);
 }
+
 

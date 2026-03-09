@@ -1,6 +1,5 @@
-// Version: 26.03.09.1635
+// Version: 26.03.09.1755
 self.addEventListener('push', function (event) {
-
     const data = event.data.json();
     const options = {
         body: data.body,
@@ -12,24 +11,32 @@ self.addEventListener('push', function (event) {
         }
     };
 
+    const notificationPromise = self.registration.showNotification(data.title, options);
+
+    // 배지 업데이트 로직
+    let badgePromise;
+    if (data.badge !== undefined && 'setAppBadge' in self.navigator) {
+        // 푸시 데이터에 배지 정보가 있으면 즉시 적용
+        badgePromise = self.navigator.setAppBadge(data.badge);
+    } else {
+        // 없으면 서버에 물어보기 (폴백)
+        badgePromise = fetch('/api/unread', { credentials: 'include' })
+            .then(res => res.json())
+            .then(unreadData => {
+                if (unreadData.totalUnread !== undefined && 'setAppBadge' in self.navigator) {
+                    return self.navigator.setAppBadge(unreadData.totalUnread);
+                }
+            }).catch(err => console.error('SW badge error:', err));
+    }
+
     event.waitUntil(
         Promise.all([
-            self.registration.showNotification(data.title, options),
-            // 백그라운드에서 읽지 않은 수 가져와 배지 갱신 시도
-            fetch('/api/unread', { credentials: 'include' })
-                .then(res => res.json())
-                .then(unreadData => {
-                    if (unreadData.totalUnread !== undefined) {
-                        if ('setAppBadge' in self.navigator) {
-                            return self.navigator.setAppBadge(unreadData.totalUnread);
-                        }
-                    }
-                }).catch(err => console.error('SW badge error:', err))
-
-
+            notificationPromise,
+            badgePromise
         ])
     );
 });
+
 
 
 self.addEventListener('notificationclick', function (event) {
