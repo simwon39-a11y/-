@@ -11,9 +11,20 @@ self.addEventListener('push', function (event) {
     };
 
     event.waitUntil(
-        self.registration.showNotification(data.title, options)
+        Promise.all([
+            self.registration.showNotification(data.title, options),
+            // 백그라운드에서 읽지 않은 수 가져와 배지 갱신 시도
+            fetch('/api/unread')
+                .then(res => res.json())
+                .then(unreadData => {
+                    if (unreadData.totalUnread !== undefined && 'setAppBadge' in navigator) {
+                        return (navigator as any).setAppBadge(unreadData.totalUnread);
+                    }
+                }).catch(err => console.error('SW badge error:', err))
+        ])
     );
 });
+
 
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();

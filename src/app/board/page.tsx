@@ -4,6 +4,8 @@ import { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import { getPostsByCategoryAction, createCommentAction } from './actions';
 import { PostCategory } from '@prisma/client';
+import { trackBoardViewAction } from '@/app/api/unread/actions';
+
 
 export default function BoardList() {
     const [notices, setNotices] = useState<any[]>([]);
@@ -34,9 +36,15 @@ export default function BoardList() {
             setResources(rData);
             setFreePosts(fData);
             setIsLoading(false);
+
+            // 게시판을 확인했음을 기록 (읽지 않은 수 초기화용)
+            trackBoardViewAction('NOTICE');
+            trackBoardViewAction('RESOURCE');
+            trackBoardViewAction('FREE');
         }
         loadAllPosts();
     }, []);
+
 
     const toggleNotice = (id: number) => {
         setExpandedId(expandedId === id ? null : id);

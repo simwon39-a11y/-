@@ -3,39 +3,48 @@
 import { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import { getMessagesAction, sendMessageAction } from './actions';
+import { markChatAsReadAction } from '@/app/api/unread/actions';
 
 export default function ChatRoom() {
-    // 실제 서비스에서는 로그인한 사용자 ID를 세션에서 가져와야 하지만, 
-    // 지금은 테스트를 위해 임시로 1번(나), 2번(상대방)으로 설정합니다.
-    const myId = 1;
-    const otherId = 2;
-
     const [messages, setMessages] = useState<any[]>([]);
     const [inputText, setInputText] = useState('');
     const [isPending, startTransition] = useTransition();
+    const [user, setUser] = useState<any>(null);
 
-    // 메시지 불러오기 함수
-    const loadMessages = async () => {
-        const data = await getMessagesAction(myId, otherId);
-        setMessages(data);
-    };
+    // 실제 서비스에서는 다른 사람의 ID를 파라미터로 받아야 하지만 
+    // 현재 구현에 맞춰 임시로 2번으로 설정
+    const otherId = 2;
 
-    // 처음에 불러오고, 3초마다 자동으로 새 메시지가 있는지 확인합니다 (폴링)
     useEffect(() => {
-        loadMessages();
-        const interval = setInterval(loadMessages, 3000);
-        return () => clearInterval(interval);
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const u = JSON.parse(userStr);
+            setUser(u);
+
+            // 메시지 불러오기 및 읽음 처리
+            const loadAndMark = async () => {
+                const data = await getMessagesAction(u.id, otherId);
+                setMessages(data);
+                await markChatAsReadAction(otherId);
+            };
+            loadAndMark();
+
+            const interval = setInterval(loadAndMark, 3000);
+            return () => clearInterval(interval);
+        }
     }, []);
 
+
     const handleSend = async () => {
-        if (!inputText.trim()) return;
+        if (!inputText.trim() || !user) return;
 
         const textToSend = inputText;
-        setInputText(''); // 입력창 미리 비우기 (부드러운 경험)
+        setInputText('');
 
         startTransition(async () => {
-            await sendMessageAction(myId, otherId, textToSend);
-            loadMessages(); // 보낸 후 즉시 다시 불러오기
+            await sendMessageAction(user.id, otherId, textToSend);
+            // 다음 인클로저(setInterval)에서 자연스럽게 갱신되므로 
+            // 여기선 따로 호출하지 않아도 됨
         });
     };
 
@@ -43,12 +52,13 @@ export default function ChatRoom() {
         <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
             <header style={{ padding: 'var(--spacing-md)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', backgroundColor: 'white' }}>
                 <h1 style={{ fontSize: '24px', color: 'var(--accent-primary)' }}>김철수 법사님과의 대화</h1>
-                <Link href="/" style={{ textDecoration: 'none', color: 'var(--text-secondary)' }}>닫기</Link>
+                <Link href="/dashboard" style={{ textDecoration: 'none', color: 'var(--text-secondary)' }}>닫기</Link>
             </header>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 {messages.length > 0 ? messages.map((msg) => {
-                    const isMe = msg.senderId === myId;
+                    const isMe = msg.senderId === user?.id;
+
                     return (
                         <div key={msg.id} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
                             <div style={{

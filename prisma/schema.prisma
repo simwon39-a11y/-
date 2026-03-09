@@ -26,6 +26,9 @@ model User {
   receivedMessages Message[] @relation("ReceivedMessages")
   sentMessages     Message[] @relation("SentMessages")
   posts            Post[]
+  lastNoticeViewAt   DateTime  @default(now())
+  lastResourceViewAt DateTime  @default(now())
+  lastFreeViewAt     DateTime  @default(now())
 }
 
 model Post {
@@ -62,10 +65,12 @@ model Message {
   senderId   Int
   receiverId Int
   text       String
+  isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
 }
+
 
 model PushSubscription {
   id        Int      @id @default(autoincrement())
