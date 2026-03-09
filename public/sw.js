@@ -1,6 +1,5 @@
-// Version: 26.03.09.1810
+// Version: 26.03.09.1820
 self.addEventListener('push', function (event) {
-
     const data = event.data.json();
     const options = {
         body: data.body,
@@ -12,31 +11,36 @@ self.addEventListener('push', function (event) {
         }
     };
 
-    const notificationPromise = self.registration.showNotification(data.title, options);
+    // 알림 표시를 먼저 실행 (일부 모바일 OS는 알림이 있어야 배지 수정을 허용함)
+    const showNotificationPromise = self.registration.showNotification(data.title, options);
 
     // 배지 업데이트 로직
-    let badgePromise;
-    if (data.badge !== undefined && 'setAppBadge' in self.navigator) {
-        // 푸시 데이터에 배지 정보가 있으면 즉시 적용
-        badgePromise = self.navigator.setAppBadge(data.badge);
-    } else {
-        // 없으면 서버에 물어보기 (폴백)
-        badgePromise = fetch('/api/unread', { credentials: 'include' })
-            .then(res => res.json())
-            .then(unreadData => {
-                if (unreadData.totalUnread !== undefined && 'setAppBadge' in self.navigator) {
-                    return self.navigator.setAppBadge(unreadData.totalUnread);
+    const updateBadgePromise = (async () => {
+        try {
+            if ('setAppBadge' in self.navigator) {
+                if (data.badge !== undefined) {
+                    await self.navigator.setAppBadge(data.badge);
+                } else {
+                    const res = await fetch('/api/unread', { credentials: 'include' });
+                    const unreadData = await res.json();
+                    if (unreadData.totalUnread !== undefined) {
+                        await self.navigator.setAppBadge(unreadData.totalUnread);
+                    }
                 }
-            }).catch(err => console.error('SW badge error:', err));
-    }
+            }
+        } catch (err) {
+            console.error('Badge update error:', err);
+        }
+    })();
 
     event.waitUntil(
         Promise.all([
-            notificationPromise,
-            badgePromise
+            showNotificationPromise,
+            updateBadgePromise
         ])
     );
 });
+
 
 
 
