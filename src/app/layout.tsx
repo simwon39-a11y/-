@@ -61,9 +61,24 @@ export default function RootLayout({
 
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                  // 캐시 방지를 위해 버전 쿼리 추가
+                  const swUrl = '/sw.js?v=' + Date.now();
+                  navigator.serviceWorker.register(swUrl).then(function(registration) {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    
+                    // 업데이트가 있으면 즉시 활성화 시도
+                    registration.onupdatefound = () => {
+                      const installingWorker = registration.installing;
+                      if (installingWorker) {
+                        installingWorker.onstatechange = () => {
+                          if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload(); 
+                          }
+                        };
+                      }
+                    };
                   }, function(err) {
+
                     console.log('ServiceWorker registration failed: ', err);
                   });
                 });
