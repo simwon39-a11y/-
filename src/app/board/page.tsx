@@ -6,9 +6,8 @@ import { getPostsByCategoryAction, createCommentAction } from './actions';
 import { PostCategory } from '@prisma/client';
 import { trackBoardViewAction } from '@/app/api/unread/actions';
 
-export const dynamic = 'force-dynamic';
-
 export default function BoardPage() {
+
     const [notices, setNotices] = useState<any[]>([]);
     const [resources, setResources] = useState<any[]>([]);
     const [freePosts, setFreePosts] = useState<any[]>([]);

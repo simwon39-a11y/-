@@ -1,15 +1,18 @@
 import webpush from 'web-push';
 import db from './db';
 
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY!;
-const vapidMailto = process.env.VAPID_MAILTO!;
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
+const vapidMailto = process.env.VAPID_MAILTO || 'mailto:admin@example.com';
 
-webpush.setVapidDetails(
-    vapidMailto,
-    vapidPublicKey,
-    vapidPrivateKey
-);
+if (vapidPublicKey && vapidPrivateKey) {
+    webpush.setVapidDetails(
+        vapidMailto,
+        vapidPublicKey,
+        vapidPrivateKey
+    );
+}
+
 
 /**
  * 특정 사용자에게 푸시 알림을 보냅니다.
