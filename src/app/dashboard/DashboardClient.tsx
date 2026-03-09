@@ -26,7 +26,25 @@ export default function DashboardClient({
     const [user] = useState<any>(initialUser);
     const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails);
     const [pushStatus, setPushStatus] = useState<'granted' | 'denied' | 'default' | 'loading'>('loading');
+    const [isSubscribed, setIsSubscribed] = useState<boolean | 'loading'>('loading');
     const router = useRouter();
+
+    // 읽지 않은 수 상세 정보 가져오기
+    const fetchUnread = async () => {
+        try {
+            const res = await fetch('/api/unread');
+            if (res.ok) {
+                const data = await res.json();
+                console.log('Unread check result:', data.details);
+                setUnreadDetails(data.details);
+                if (data.pushCount !== undefined) {
+                    setIsSubscribed(data.pushCount > 0);
+                }
+            }
+        } catch (err) {
+            console.error('Fetch unread error:', err);
+        }
+    };
 
     useEffect(() => {
         if (initialUser) {
@@ -36,22 +54,6 @@ export default function DashboardClient({
         // 알림 권한 상태 확인
         if ('Notification' in window) {
             setPushStatus(Notification.permission);
-        }
-
-        // 읽지 않은 수 상세 정보 가져오기
-
-        async function fetchUnread() {
-            try {
-                const res = await fetch('/api/unread');
-                if (res.ok) {
-                    const data = await res.json();
-                    console.log('Unread check result:', data.details);
-                    setUnreadDetails(data.details);
-
-                }
-            } catch (err) {
-                console.error('Fetch unread error:', err);
-            }
         }
 
         // 컴포넌트 마운트 시 한 번 더 가져와서 최신화 (initial 데이터가 서버 시점일 수 있으므로)
@@ -95,10 +97,22 @@ export default function DashboardClient({
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
-                <div style={{ fontSize: '12px', marginTop: '5px' }}>
-                    알림 상태: {pushStatus === 'granted' ? <span style={{ color: 'green' }}>✅ 활성화됨</span> :
-                        pushStatus === 'denied' ? <span style={{ color: 'red' }}>❌ 차단됨 (설정 필요)</span> :
-                            <span style={{ color: 'orange' }}>⚠️ 확인 중/미허용</span>}
+                <div style={{ fontSize: '12px', marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div>
+                        알림 권한: {pushStatus === 'granted' ? <span style={{ color: 'green' }}>✅ 허용됨</span> :
+                            pushStatus === 'denied' ? <span style={{ color: 'red' }}>❌ 차단됨</span> :
+                                <span style={{ color: 'orange' }}>⚠️ 확인 중</span>}
+                        {` | `}
+                        서버 등록: {isSubscribed === true ? <span style={{ color: 'green' }}>✅ 완료</span> :
+                            isSubscribed === false ? <span style={{ color: 'red' }}>❌ 미등록</span> :
+                                <span>...</span>}
+                    </div>
+                    <button
+                        onClick={fetchUnread}
+                        style={{ alignSelf: 'center', backgroundColor: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
+                    >
+                        🔄 숫자 새로고침
+                    </button>
                 </div>
             </header>
 

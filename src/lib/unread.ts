@@ -58,8 +58,13 @@ export async function getUnreadCounts(userId: number) {
 
     const totalUnread = unreadMessages + unreadNotices + unreadResources + unreadFrees;
 
+    const pushCount = await (db as any).pushSubscription.count({
+        where: { userId }
+    });
+
     return {
         totalUnread,
+        pushCount,
         details: {
             messages: unreadMessages,
             notices: unreadNotices,
@@ -68,3 +73,4 @@ export async function getUnreadCounts(userId: number) {
         }
     };
 }
+
