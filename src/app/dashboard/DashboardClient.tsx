@@ -105,6 +105,69 @@ export default function DashboardClient({
         }
     };
 
+    const registerPush = async () => {
+        if (!user) return;
+        try {
+            if (!('serviceWorker' in navigator)) {
+                alert('이 브라우저는 서비스 워커를 지원하지 않습니다.');
+                return;
+            }
+
+            const registration = await navigator.serviceWorker.ready;
+            const permission = await Notification.requestPermission();
+
+            if (permission !== 'granted') {
+                alert('알림 권한이 거부되었습니다. 핸드폰 설정에서 알림을 허용해 주세요.');
+                return;
+            }
+
+            const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+            if (!vapidKey) {
+                alert('VAPID 키가 설정되지 않았습니다.');
+                return;
+            }
+
+            let subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(vapidKey)
+                });
+            }
+
+            const res = await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: user.id,
+                    subscription: JSON.parse(JSON.stringify(subscription))
+                })
+            });
+
+            if (res.ok) {
+                alert('서버 등록이 완료되었습니다! 이제 숫자가 정상적으로 표시됩니다.');
+                fetchUnread(); // 상태 즉시 갱신
+            } else {
+                alert('서버 등록에 실패했습니다. 다시 시도해 주세요.');
+            }
+        } catch (error) {
+            console.error('Manual registration error:', error);
+            alert('등록 중 오류 발생: ' + error);
+        }
+    };
+
+    function urlBase64ToUint8Array(base64String: string) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+
 
     return (
         <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
@@ -140,6 +203,24 @@ export default function DashboardClient({
                             isSubscribed === false ? <span style={{ color: 'red' }}>❌ 미등록</span> :
                                 <span>...</span>}
                     </div>
+
+                    {isSubscribed === false && (
+                        <div style={{ marginTop: '5px', padding: '10px', backgroundColor: '#ffebee', borderRadius: '8px', border: '1px solid #ffcdd2' }}>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#c62828', fontWeight: 'bold' }}>
+                                ⚠️ 숫자가 안 나오는 이유: 서버에 등록되지 않았습니다!
+                            </p>
+                            <button
+                                onClick={registerPush}
+                                style={{ width: '100%', padding: '10px', backgroundColor: '#d32f2f', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}
+                            >
+                                🔔 지금 서버에 등록하기 (클릭)
+                            </button>
+                            <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#666' }}>
+                                * 위 버튼을 누른 후 '완료' 표시가 뜨면 숫자가 나오기 시작합니다.
+                            </p>
+                        </div>
+                    )}
+
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                         <button
                             onClick={fetchUnread}
