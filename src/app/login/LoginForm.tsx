@@ -34,7 +34,11 @@ export default function LoginForm() {
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                 <h1 style={{ color: 'var(--accent-primary)' }}>들어 가기</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>성함과 전화번호를 입력해 주세요</p>
+                <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
+                    버전: 26.03.09.1650
+                </div>
             </header>
+
 
             <form className="card" onSubmit={handleLogin}>
                 <div style={{ marginBottom: 'var(--spacing-md)' }}>

@@ -21,7 +21,11 @@ export default async function Home() {
         <p style={{ color: 'var(--text-secondary)', fontSize: '20px' }}>
           경기남부종무원에 오신 것을 환영합니다
         </p>
+        <div style={{ fontSize: '10px', color: '#ccc', marginTop: '5px' }}>
+          버전: 26.03.09.1650
+        </div>
       </header>
+
 
       <InstallPWA />
 
