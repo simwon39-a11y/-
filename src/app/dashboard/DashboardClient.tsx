@@ -184,10 +184,8 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.2150
+                    버전: 26.03.09.2210
                 </div>
-
-
 
                 {typeof window !== 'undefined' && !window.matchMedia('(display-mode: standalone)').matches && (
                     <div style={{ fontSize: '12px', color: '#666', marginTop: '8px', padding: '10px', backgroundColor: '#fff9c4', borderRadius: '8px' }}>
@@ -196,7 +194,6 @@ export default function DashboardClient({
                         <b>크롬 메뉴(⋮) {'->'} [홈 화면에 추가]</b>를 눌러주세요!
                     </div>
                 )}
-
 
                 <div style={{ fontSize: '12px', marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div>
@@ -264,11 +261,12 @@ export default function DashboardClient({
                     </div>
 
                     <div style={{ fontSize: '11px', color: '#888' }}>
-                        기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>}
+                        기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>} |
+                        키 상태: {vapidPublicKey ? <span style={{ color: 'green' }}>✅ 있음({vapidPublicKey.length})</span> : <span style={{ color: 'red' }}>❌ 없음</span>}
                     </div>
-
                 </div>
             </header>
+
 
 
             {/* 1. 최신 공지사항 */}
@@ -381,6 +379,6 @@ export default function DashboardClient({
                     로그아웃
                 </button>
             </div>
-        </main>
+        </main >
     );
 }

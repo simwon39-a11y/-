@@ -27,6 +27,8 @@ export default async function DashboardPage() {
         getUnreadCounts(user.id)
     ]);
 
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || '';
+
     return (
         <DashboardClient
             initialUser={user}
@@ -34,9 +36,10 @@ export default async function DashboardPage() {
             initialResources={resources}
             initialFrees={frees}
             initialUnreadDetails={unreadData.details}
-            vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''}
+            vapidPublicKey={vapidPublicKey}
         />
     );
+
 
 }
 
