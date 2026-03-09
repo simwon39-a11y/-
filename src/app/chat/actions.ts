@@ -52,4 +52,12 @@ export async function sendMessageAction(senderId: number, receiverId: number, te
 
     return message;
 }
-
+/**
+ * 툭정 사용자의 기본 정보를 가져옵니다.
+ */
+export async function getUserInfoAction(userId: number) {
+    return await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, buddhistName: true }
+    });
+}

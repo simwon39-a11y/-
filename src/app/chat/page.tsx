@@ -1,25 +1,30 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, Suspense } from 'react';
 import Link from 'next/link';
-import { getMessagesAction, sendMessageAction } from './actions';
+import { useSearchParams } from 'next/navigation';
+import { getMessagesAction, sendMessageAction, getUserInfoAction } from './actions';
 import { markChatAsReadAction } from '@/app/api/unread/actions';
 
-export default function ChatRoom() {
+function ChatContent() {
+    const searchParams = useSearchParams();
+    const toParam = searchParams.get('to');
+    const otherId = toParam ? parseInt(toParam) : 0;
+
     const [messages, setMessages] = useState<any[]>([]);
     const [inputText, setInputText] = useState('');
     const [isPending, startTransition] = useTransition();
     const [user, setUser] = useState<any>(null);
-
-    // 실제 서비스에서는 다른 사람의 ID를 파라미터로 받아야 하지만 
-    // 현재 구현에 맞춰 임시로 2번으로 설정
-    const otherId = 2;
+    const [otherUser, setOtherUser] = useState<any>(null);
 
     useEffect(() => {
         const userStr = localStorage.getItem('user');
-        if (userStr) {
+        if (userStr && otherId) {
             const u = JSON.parse(userStr);
             setUser(u);
+
+            // 상대방 정보 가져오기
+            getUserInfoAction(otherId).then(info => setOtherUser(info));
 
             // 메시지 불러오기 및 읽음 처리
             const loadAndMark = async () => {
@@ -32,26 +37,35 @@ export default function ChatRoom() {
             const interval = setInterval(loadAndMark, 3000);
             return () => clearInterval(interval);
         }
-    }, []);
+    }, [otherId]);
 
 
     const handleSend = async () => {
-        if (!inputText.trim() || !user) return;
+        if (!inputText.trim() || !user || !otherId) return;
 
         const textToSend = inputText;
         setInputText('');
 
         startTransition(async () => {
             await sendMessageAction(user.id, otherId, textToSend);
-            // 다음 인클로저(setInterval)에서 자연스럽게 갱신되므로 
-            // 여기선 따로 호출하지 않아도 됨
         });
     };
+
+    if (!otherId) {
+        return (
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+                <p>대화 상대방이 지정되지 않았습니다.</p>
+                <Link href="/search" className="btn btn-primary">사람 찾으러 가기</Link>
+            </div>
+        );
+    }
 
     return (
         <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
             <header style={{ padding: 'var(--spacing-md)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', backgroundColor: 'white' }}>
-                <h1 style={{ fontSize: '24px', color: 'var(--accent-primary)' }}>김철수 법사님과의 대화</h1>
+                <h1 style={{ fontSize: '24px', color: 'var(--accent-primary)' }}>
+                    {otherUser ? `${otherUser.buddhistName || otherUser.name} 법사님` : '대화 중...'}
+                </h1>
                 <Link href="/dashboard" style={{ textDecoration: 'none', color: 'var(--text-secondary)' }}>닫기</Link>
             </header>
 
@@ -97,3 +111,12 @@ export default function ChatRoom() {
         </main>
     );
 }
+
+export default function ChatRoom() {
+    return (
+        <Suspense fallback={<div>불러오는 중...</div>}>
+            <ChatContent />
+        </Suspense>
+    );
+}
+
