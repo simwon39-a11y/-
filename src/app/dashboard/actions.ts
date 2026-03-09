@@ -14,10 +14,12 @@ export async function sendTestPushAction() {
             '아이콘 숫자가 생겼는지 확인해 보세요! (테스트 배지: 7)',
             '/dashboard'
         );
+        if (!result) return { success: true, message: '테스트 푸시를 보냈습니다.' };
         return {
             success: true,
             message: `테스트 푸시를 보냈습니다. (발송대상: ${result.total}대, 성공: ${result.success}대)`
         };
+
     } catch (error) {
         console.error('Test push error:', error);
         return { success: false, message: '푸시 전송 중 오류가 발생했습니다.' };
