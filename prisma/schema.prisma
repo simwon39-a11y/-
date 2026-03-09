@@ -67,6 +67,16 @@ model Message {
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
 }
 
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+
+
 enum PostCategory {
   NOTICE
   RESOURCE

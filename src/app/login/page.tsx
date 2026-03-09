@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { loginAction } from './actions';
+import InstallPWA from '@/components/InstallPWA';
 
 export default function Login() {
     const [name, setName] = useState('');
@@ -29,7 +30,9 @@ export default function Login() {
 
     return (
         <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
+            <InstallPWA />
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
+
                 <h1 style={{ color: 'var(--accent-primary)' }}>들어 가기</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>성함과 전화번호를 입력해 주세요</p>
             </header>

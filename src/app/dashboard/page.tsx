@@ -5,9 +5,15 @@ import Link from 'next/link';
 import { getPostsByCategoryAction } from '@/app/board/actions';
 
 import { useRouter } from 'next/navigation';
+import PushSubscriptionHandler from '@/components/PushSubscriptionHandler';
+import InstallPWA from '@/components/InstallPWA';
+
+
 
 export default function Dashboard() {
+    const [user, setUser] = useState<any>(null);
     const [latestNotice, setLatestNotice] = useState<any>(null);
+
     const [latestResource, setLatestResource] = useState<any>(null);
     const [latestFree, setLatestFree] = useState<any>(null);
     const router = useRouter();
@@ -19,6 +25,8 @@ export default function Dashboard() {
             router.push('/login');
             return;
         }
+        setUser(JSON.parse(userStr));
+
 
         async function loadLatests() {
             const [notices, resources, frees] = await Promise.all([
@@ -41,7 +49,11 @@ export default function Dashboard() {
 
     return (
         <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
+            <InstallPWA />
+            {user && <PushSubscriptionHandler userId={user.id} />}
+
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
+
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
             </header>
 
