@@ -133,12 +133,23 @@ export default function DashboardClient({
         if ('clearAppBadge' in navigator) {
             try {
                 await (navigator as any).clearAppBadge();
-                alert('배지 지우기 시도 완료!');
+
+                // 알림창의 알림도 함께 지우기 (삼성 폰 등에서 배지를 없애기 위해 필수)
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const reg of registrations) {
+                        const notifications = await reg.getNotifications();
+                        notifications.forEach(notification => notification.close());
+                    }
+                }
+
+                alert('배지 지우기 시도 완료! 상단 알림창도 함께 정리되었습니다.');
             } catch (err) {
                 alert('배지 지우기 오류: ' + err);
             }
         }
     };
+
 
     const registerPush = async () => {
         if (!user) return;
@@ -235,8 +246,9 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.2340
+                    버전: 26.03.09.2350
                 </div>
+
 
 
 
