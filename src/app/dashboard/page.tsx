@@ -1,6 +1,7 @@
 import { getServerUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getPostsByCategoryAction } from '@/app/board/actions';
+import { getUnreadCounts } from '@/lib/unread';
 import DashboardClient from './DashboardClient';
 
 export default async function DashboardPage() {
@@ -12,10 +13,13 @@ export default async function DashboardPage() {
     }
 
     // 서버 사이드에서 최신 데이터들을 미리 가져옵니다.
-    const [notices, resources, frees] = await Promise.all([
-        getPostsByCategoryAction('NOTICE'),
-        getPostsByCategoryAction('RESOURCE'),
-        getPostsByCategoryAction('FREE')
+    const [[notices, resources, frees], unreadData] = await Promise.all([
+        Promise.all([
+            getPostsByCategoryAction('NOTICE'),
+            getPostsByCategoryAction('RESOURCE'),
+            getPostsByCategoryAction('FREE')
+        ]),
+        getUnreadCounts(user.id)
     ]);
 
     return (
@@ -24,6 +28,8 @@ export default async function DashboardPage() {
             initialNotices={notices}
             initialResources={resources}
             initialFrees={frees}
+            initialUnreadDetails={unreadData.details}
         />
     );
 }
+

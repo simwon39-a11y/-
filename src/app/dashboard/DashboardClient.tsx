@@ -13,16 +13,18 @@ interface DashboardClientProps {
     initialNotices: any[];
     initialResources: any[];
     initialFrees: any[];
+    initialUnreadDetails?: any;
 }
 
 export default function DashboardClient({
     initialUser,
     initialNotices,
     initialResources,
-    initialFrees
+    initialFrees,
+    initialUnreadDetails
 }: DashboardClientProps) {
     const [user] = useState<any>(initialUser);
-    const [unreadDetails, setUnreadDetails] = useState<any>(null);
+    const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails);
     const router = useRouter();
 
     useEffect(() => {
@@ -42,10 +44,21 @@ export default function DashboardClient({
                 console.error('Fetch unread error:', err);
             }
         }
+
+        // 컴포넌트 마운트 시 한 번 더 가져와서 최신화 (initial 데이터가 서버 시점일 수 있으므로)
         fetchUnread();
+
         const interval = setInterval(fetchUnread, 30000); // 30초마다 갱신
-        return () => clearInterval(interval);
+
+        // 윈도우 포커스(앱 다시 켬) 시 즉시 갱신
+        window.addEventListener('focus', fetchUnread);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('focus', fetchUnread);
+        };
     }, [initialUser]);
+
 
 
     const handleLogout = async () => {
