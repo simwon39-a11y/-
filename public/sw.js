@@ -1,5 +1,6 @@
-// Version: 26.03.09.1755
+// Version: 26.03.09.1810
 self.addEventListener('push', function (event) {
+
     const data = event.data.json();
     const options = {
         body: data.body,
