@@ -101,12 +101,13 @@ export async function createPostAction(formData: FormData) {
             category === 'RESOURCE' ? '불교 자료' : '자유게시판';
 
         // 백그라운드에서 실행되도록 기다리지 않고 보냅니다.
-        sendGlobalPushNotification(
+        await sendGlobalPushNotification(
             `새로운 ${categoryName}이 등록되었습니다.`,
             title,
             '/board',
             authorId
         );
+
 
         return { success: true };
 
@@ -133,12 +134,13 @@ export async function createCommentAction(postId: number, authorId: number, text
         });
 
         // 댓글 알림을 모든 사용자에게 보냅니다.
-        sendGlobalPushNotification(
+        await sendGlobalPushNotification(
             `새로운 답글이 등록되었습니다.`,
             `${comment.post.title}: ${text}`,
             '/board',
             authorId
         );
+
 
         return { success: true };
 

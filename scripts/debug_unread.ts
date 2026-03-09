@@ -38,6 +38,14 @@ async function checkUnread() {
         });
         console.log(`\nUnread Notices for ${user.name}: ${unreadNotices}`);
 
+        const unreadResources = await prisma.post.count({
+            where: {
+                category: 'RESOURCE',
+                createdAt: { gt: user.lastResourceViewAt }
+            }
+        });
+        console.log(`Unread Resources for ${user.name}: ${unreadResources}`);
+
         const unreadFrees = await prisma.post.count({
             where: {
                 category: 'FREE',
@@ -45,6 +53,11 @@ async function checkUnread() {
             }
         });
         console.log(`Unread Frees for ${user.name}: ${unreadFrees}`);
+
+        const subs = await (prisma as any).pushSubscription.count({
+            where: { userId: user.id }
+        });
+        console.log(`Push Subscriptions for ${user.name}: ${subs}`);
     }
 }
 

@@ -38,7 +38,9 @@ export default function DashboardClient({
                 const res = await fetch('/api/unread');
                 if (res.ok) {
                     const data = await res.json();
+                    console.log('Unread check result:', data.details);
                     setUnreadDetails(data.details);
+
                 }
             } catch (err) {
                 console.error('Fetch unread error:', err);

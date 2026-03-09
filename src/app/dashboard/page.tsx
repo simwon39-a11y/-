@@ -4,7 +4,10 @@ import { getPostsByCategoryAction } from '@/app/board/actions';
 import { getUnreadCounts } from '@/lib/unread';
 import DashboardClient from './DashboardClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
+
     const user = await getServerUser();
 
     // 로그인이 안 되어 있으면 로그인 페이지로 보냅니다.
