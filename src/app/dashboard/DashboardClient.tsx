@@ -97,6 +97,9 @@ export default function DashboardClient({
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
+                <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
+                    버전: 26.03.09.1630
+                </div>
                 <div style={{ fontSize: '12px', marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div>
                         알림 권한: {pushStatus === 'granted' ? <span style={{ color: 'green' }}>✅ 허용됨</span> :
@@ -107,12 +110,20 @@ export default function DashboardClient({
                             isSubscribed === false ? <span style={{ color: 'red' }}>❌ 미등록</span> :
                                 <span>...</span>}
                     </div>
-                    <button
-                        onClick={fetchUnread}
-                        style={{ alignSelf: 'center', backgroundColor: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
-                    >
-                        🔄 숫자 새로고침
-                    </button>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                        <button
+                            onClick={fetchUnread}
+                            style={{ backgroundColor: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                            🔄 숫자 새로고침
+                        </button>
+                        <button
+                            onClick={() => window.location.href = `/dashboard?v=${Date.now()}`}
+                            style={{ backgroundColor: '#fff', border: '1px solid #ff9800', color: '#ff9800', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                            ⚡ 강제 업데이트
+                        </button>
+                    </div>
                 </div>
             </header>
 
