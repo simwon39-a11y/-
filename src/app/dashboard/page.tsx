@@ -27,7 +27,10 @@ export default async function DashboardPage() {
         getUnreadCounts(user.id)
     ]);
 
-    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || '';
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+        process.env.VAPID_PUBLIC_KEY ||
+        'BJRBZ0FKFSixD5QLvuhB-9L3W11mDrUFqbpK3srg_Oyxq7f8ORFimfGbD0UiCX9fCPEwez-By3I3_RacJIGVFj4';
+
 
     return (
         <DashboardClient
