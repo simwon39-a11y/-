@@ -5,10 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import PushSubscriptionHandler from '@/components/PushSubscriptionHandler';
 import InstallPWA from '@/components/InstallPWA';
-import { sendTestPushAction } from './actions';
-
-
-
+import { refreshAppBadge } from '@/lib/badgeClient';
 
 interface DashboardClientProps {
     initialUser: any;
@@ -18,7 +15,6 @@ interface DashboardClientProps {
     initialUnreadDetails?: any;
     vapidPublicKey: string;
 }
-
 
 export default function DashboardClient({
     initialUser,
@@ -31,36 +27,22 @@ export default function DashboardClient({
 
     const [user] = useState<any>(initialUser);
     const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails);
-    const [pushStatus, setPushStatus] = useState<'granted' | 'denied' | 'default' | 'loading'>('loading');
     const [isSubscribed, setIsSubscribed] = useState<boolean | 'loading'>('loading');
-    const [subCount, setSubCount] = useState<number>(0);
-    const [swVersion, setSwVersion] = useState<string>('확인 중...');
     const router = useRouter();
 
-
-
-    // 읽지 않은 수 상세 정보 가져오기
     const fetchUnread = async () => {
         try {
             const res = await fetch('/api/unread');
             if (res.ok) {
                 const data = await res.json();
-                console.log('Unread check result:', data.details);
                 setUnreadDetails(data.details);
                 if (data.pushCount !== undefined) {
                     setIsSubscribed(data.pushCount > 0);
-                    setSubCount(data.pushCount);
                 }
 
-                // 실시간 배지 업데이트 추가
-                if ('setAppBadge' in navigator && data.totalUnread !== undefined) {
-                    const count = parseInt(data.totalUnread, 10);
-                    if (!isNaN(count)) {
-                        (navigator as any).setAppBadge(count).catch(console.error);
-                    }
-                }
+                // 실시간 배지 업데이트
+                await refreshAppBadge();
             }
-
         } catch (err) {
             console.error('Fetch unread error:', err);
         }
@@ -71,34 +53,8 @@ export default function DashboardClient({
             localStorage.setItem('user', JSON.stringify(initialUser));
         }
 
-        // 알림 권한 상태 확인
-        if ('Notification' in window) {
-            setPushStatus(Notification.permission);
-        }
-
-        // 서비스 워커 버전 확인
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistration().then(reg => {
-                if (reg && reg.active) {
-                    // sw.js의 첫 줄 주석에서 버전을 읽어오기 시도
-                    fetch('/sw.js').then(res => res.text()).then(text => {
-                        const match = text.match(/\/\/ Version: ([\d.]+)/);
-                        if (match) setSwVersion(match[1]);
-                        else setSwVersion('알 수 없음');
-                    });
-                } else {
-                    setSwVersion('비활성');
-                }
-            });
-        }
-
-
-        // 컴포넌트 마운트 시 한 번 더 가져와서 최신화 (initial 데이터가 서버 시점일 수 있으므로)
         fetchUnread();
-
-        const interval = setInterval(fetchUnread, 30000); // 30초마다 갱신
-
-        // 윈도우 포커스(앱 다시 켬) 시 즉시 갱신
+        const interval = setInterval(fetchUnread, 30000);
         window.addEventListener('focus', fetchUnread);
 
         return () => {
@@ -107,49 +63,12 @@ export default function DashboardClient({
         };
     }, [initialUser]);
 
-
-
     const handleLogout = async () => {
         localStorage.removeItem('user');
         document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         router.push('/');
         router.refresh();
     };
-
-    const testBadge = async (count: number) => {
-        if ('setAppBadge' in navigator) {
-            try {
-                await (navigator as any).setAppBadge(count);
-                alert(`배지 ${count}개 설정 시도 완료! 바탕화면 아이콘에 숫자가 생겼는지 확인해 보세요.`);
-            } catch (err) {
-                alert('배지 설정 오류: ' + err);
-            }
-        } else {
-            alert('이 기기의 브라우저는 앱 배지(숫자 표시) 기능을 지원하지 않습니다.');
-        }
-    };
-
-    const clearBadge = async () => {
-        if ('clearAppBadge' in navigator) {
-            try {
-                await (navigator as any).clearAppBadge();
-
-                // 알림창의 알림도 함께 지우기 (삼성 폰 등에서 배지를 없애기 위해 필수)
-                if ('serviceWorker' in navigator) {
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    for (const reg of registrations) {
-                        const notifications = await reg.getNotifications();
-                        notifications.forEach(notification => notification.close());
-                    }
-                }
-
-                alert('배지 지우기 시도 완료! 상단 알림창도 함께 정리되었습니다.');
-            } catch (err) {
-                alert('배지 지우기 오류: ' + err);
-            }
-        }
-    };
-
 
     const registerPush = async () => {
         if (!user) return;
@@ -174,12 +93,19 @@ export default function DashboardClient({
 
             let subscription = await registration.pushManager.getSubscription();
             if (!subscription) {
+                const padding = '='.repeat((4 - vapidPublicKey.length % 4) % 4);
+                const base64 = (vapidPublicKey + padding).replace(/-/g, '+').replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+
                 subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                    applicationServerKey: outputArray
                 });
             }
-
 
             const res = await fetch('/api/push/subscribe', {
                 method: 'POST',
@@ -192,7 +118,7 @@ export default function DashboardClient({
 
             if (res.ok) {
                 alert('서버 등록이 완료되었습니다! 이제 숫자가 정상적으로 표시됩니다.');
-                fetchUnread(); // 상태 즉시 갱신
+                fetchUnread();
             } else {
                 alert('서버 등록에 실패했습니다. 다시 시도해 주세요.');
             }
@@ -202,158 +128,32 @@ export default function DashboardClient({
         }
     };
 
-    const resetPush = async () => {
-        if (!confirm('푸시 설정을 초기화하고 다시 등록하시겠습니까?')) return;
-        try {
-            // 1. 서비스 워커 구독 해제
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-                await subscription.unsubscribe();
-            }
-
-            // 2. 서버에서 모든 구독 정보 삭제 요청 (별도의 API가 필요하지만, 재등록 시 upsert되므로 일단 클라이언트에서만 초기화 시도)
-            alert('설정이 초기화되었습니다. 다시 [지금 서버에 등록하기] 버튼을 눌러주세요.');
-            setIsSubscribed(false);
-            setSubCount(0);
-        } catch (err) {
-            alert('초기화 오류: ' + err);
-        }
-    };
-
-
-    function urlBase64ToUint8Array(base64String: string) {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-        for (let i = 0; i < rawData.length; ++i) {
-            outputArray[i] = rawData.charCodeAt(i);
-        }
-        return outputArray;
-    }
-
-
-
     return (
         <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
             <InstallPWA />
             {user && <PushSubscriptionHandler userId={user.id} />}
 
-
-
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.2400
+                    버전: 26.03.09.2450
                 </div>
 
-
-
-
-
-
-
-
-
-
-
-                {typeof window !== 'undefined' && !window.matchMedia('(display-mode: standalone)').matches && (
-                    <div style={{ fontSize: '12px', color: '#666', marginTop: '8px', padding: '10px', backgroundColor: '#fff9c4', borderRadius: '8px' }}>
-                        💡 아이콘에 숫자가 안 나오나요? <br />
-                        기존 아이콘을 지우고, 아래 [앱으로 설치] 버튼이 안 보이면 <br />
-                        <b>크롬 메뉴(⋮) {'->'} [홈 화면에 추가]</b>를 눌러주세요!
+                {isSubscribed === false && (
+                    <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#fff9c4', borderRadius: '12px', border: '1px solid #fbc02d', textAlign: 'left' }}>
+                        <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#f57f17', fontWeight: 'bold' }}>
+                            🔔 알림 및 아이콘 숫자 설정이 필요합니다
+                        </p>
+                        <button
+                            onClick={registerPush}
+                            style={{ width: '100%', padding: '12px', backgroundColor: '#fbc02d', color: '#5f4b00', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}
+                        >
+                            지금 앱 알림 등록하기
+                        </button>
                     </div>
                 )}
-
-                <div style={{ fontSize: '12px', marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div>
-                        알림 권한: {pushStatus === 'granted' ? <span style={{ color: 'green' }}>✅ 허용됨</span> :
-                            pushStatus === 'denied' ? <span style={{ color: 'red' }}>❌ 차단됨</span> :
-                                <span style={{ color: 'orange' }}>⚠️ 확인 중</span>}
-                        {` | `}
-                        서버 등록: {isSubscribed === true ? <span style={{ color: 'green' }}>✅ 완료</span> :
-                            isSubscribed === false ? <span style={{ color: 'red' }}>❌ 미등록</span> :
-                                <span>...</span>}
-                    </div>
-
-                    {isSubscribed === false && (
-                        <div style={{ marginTop: '5px', padding: '10px', backgroundColor: '#ffebee', borderRadius: '8px', border: '1px solid #ffcdd2' }}>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#c62828', fontWeight: 'bold' }}>
-                                ⚠️ 숫자가 안 나오는 이유: 서버에 등록되지 않았습니다!
-                            </p>
-                            <button
-                                onClick={registerPush}
-                                style={{ width: '100%', padding: '10px', backgroundColor: '#d32f2f', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}
-                            >
-                                🔔 지금 서버에 등록하기 (클릭)
-                            </button>
-                            <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#666' }}>
-                                * 위 버튼을 누른 후 '완료' 표시가 뜨면 숫자가 나오기 시작합니다.
-                            </p>
-                        </div>
-                    )}
-
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                        <button
-                            onClick={fetchUnread}
-                            style={{ backgroundColor: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
-                        >
-                            🔄 숫자 새로고침
-                        </button>
-                        <button
-                            onClick={() => testBadge(5)}
-                            style={{ backgroundColor: '#e8f5e9', border: '1px solid #4caf50', color: '#2e7d32', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
-                        >
-                            🧪 배지 테스트(5)
-                        </button>
-                        <button
-                            onClick={clearBadge}
-                            style={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
-                        >
-                            🧹 배지 지우기
-                        </button>
-                        <button
-                            onClick={async () => {
-                                const res = await sendTestPushAction();
-                                if (res && res.success) alert(res.message);
-                                else if (res) alert('오류: ' + res.message);
-                                else alert('푸시 요청 중 알 수 없는 오류가 발생했습니다.');
-                            }}
-
-                            style={{ backgroundColor: '#fff3e0', border: '1px solid #ff9800', color: '#e65100', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
-                        >
-                            🚀 실제 푸시 테스트
-                        </button>
-                        <button
-                            onClick={() => window.location.href = `/dashboard?v=${Date.now()}`}
-                            style={{ backgroundColor: '#fff', border: '1px solid #ff9800', color: '#ff9800', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
-                        >
-                            ⚡ 강제 업데이트
-                        </button>
-                    </div>
-
-                    <div style={{ fontSize: '11px', color: '#888', marginTop: '8px', borderTop: '1px solid #eee', paddingTop: '8px' }}>
-                        <b>[상태 진단]</b><br />
-                        기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>} |
-                        모드: {typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches ? <span style={{ color: 'green' }}>📱 앱 모드</span> : <span style={{ color: 'orange' }}>🌐 브라우저 모드</span>} <br />
-                        SW 버전: <span style={{ color: swVersion === '26.03.09.2255' ? 'green' : 'orange' }}>{swVersion}</span> |
-                        등록된 기기 수: {subCount}대 <br />
-                        키 상태: {vapidPublicKey ? <span style={{ color: 'green' }}>✅ 있음</span> : <span style={{ color: 'red' }}>❌ 없음</span>} <br />
-                        현재 읽지 않은 총 수: <span style={{ color: 'blue', fontWeight: 'bold' }}>{unreadDetails ? (unreadDetails.messages + unreadDetails.notices + unreadDetails.resources + unreadDetails.frees) : 0}개</span>
-                    </div>
-
-                    <button onClick={resetPush} style={{ marginTop: '10px', width: '100%', fontSize: '11px', color: '#888', background: 'none', border: '1px solid #ddd', cursor: 'pointer', padding: '4px' }}>
-                        ⚙️ 푸시 설정이 꼬였나요? (설정 초기화)
-                    </button>
-
-
-
-                </div>
             </header>
-
-
 
             {/* 1. 최신 공지사항 */}
             <section className="card" style={{ marginBottom: 'var(--spacing-md)', border: '2px solid var(--accent-primary)', position: 'relative' }}>
@@ -459,7 +259,6 @@ export default function DashboardClient({
                         </span>
                     )}
                 </Link>
-
 
                 <button onClick={handleLogout} className="btn btn-secondary" style={{ width: '100%', padding: '15px', fontSize: '16px', marginTop: '10px', backgroundColor: '#f0f0f0', color: '#666', border: 'none', cursor: 'pointer' }}>
                     로그아웃
