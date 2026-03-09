@@ -98,8 +98,17 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.1630
+                    버전: 26.03.09.1840
                 </div>
+                {typeof window !== 'undefined' && !window.matchMedia('(display-mode: standalone)').matches && (
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '8px', padding: '10px', backgroundColor: '#fff9c4', borderRadius: '8px' }}>
+                        💡 아이콘에 숫자가 안 나오나요? <br />
+                        기존 아이콘을 지우고, 아래 [앱으로 설치] 버튼이 안 보이면 <br />
+                        <b>크롬 메뉴(⋮) {'->'} [홈 화면에 추가]</b>를 눌러주세요!
+                    </div>
+                )}
+
+
                 <div style={{ fontSize: '12px', marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div>
                         알림 권한: {pushStatus === 'granted' ? <span style={{ color: 'green' }}>✅ 허용됨</span> :
