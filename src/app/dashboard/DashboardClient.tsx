@@ -73,19 +73,36 @@ export default function DashboardClient({
 
 
     const handleLogout = async () => {
-        // 로그아웃 시 쿠키와 로컬스토리지 모두 제거
         localStorage.removeItem('user');
-
-        // 서버 사이드 로그아웃을 위해 전용 API 또는 Action 호출 필요성 검토
-        // 여기선 단순하게 쿠키 만료를 위해 login actions의 로그아웃 기능을 쓰거나 
-        // 직접 document.cookie 수정을 시도할 수 있지만, 
-        // 가장 확실한 건 로그아웃용 Server Action을 만드는 것입니다.
-
-        // 임시로 그냥 홈으로 보냄 (로그아웃 액션이 필요함)
         document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         router.push('/');
         router.refresh();
     };
+
+    const testBadge = async (count: number) => {
+        if ('setAppBadge' in navigator) {
+            try {
+                await (navigator as any).setAppBadge(count);
+                alert(`배지 ${count}개 설정 시도 완료! 바탕화면 아이콘에 숫자가 생겼는지 확인해 보세요.`);
+            } catch (err) {
+                alert('배지 설정 오류: ' + err);
+            }
+        } else {
+            alert('이 기기의 브라우저는 앱 배지(숫자 표시) 기능을 지원하지 않습니다.');
+        }
+    };
+
+    const clearBadge = async () => {
+        if ('clearAppBadge' in navigator) {
+            try {
+                await (navigator as any).clearAppBadge();
+                alert('배지 지우기 시도 완료!');
+            } catch (err) {
+                alert('배지 지우기 오류: ' + err);
+            }
+        }
+    };
+
 
     return (
         <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
@@ -98,8 +115,9 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.1840
+                    버전: 26.03.09.1915
                 </div>
+
                 {typeof window !== 'undefined' && !window.matchMedia('(display-mode: standalone)').matches && (
                     <div style={{ fontSize: '12px', color: '#666', marginTop: '8px', padding: '10px', backgroundColor: '#fff9c4', borderRadius: '8px' }}>
                         💡 아이콘에 숫자가 안 나오나요? <br />
@@ -127,12 +145,28 @@ export default function DashboardClient({
                             🔄 숫자 새로고침
                         </button>
                         <button
+                            onClick={() => testBadge(5)}
+                            style={{ backgroundColor: '#e8f5e9', border: '1px solid #4caf50', color: '#2e7d32', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                            🧪 배지 테스트(5)
+                        </button>
+                        <button
+                            onClick={clearBadge}
+                            style={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                            🧹 배지 지우기
+                        </button>
+                        <button
                             onClick={() => window.location.href = `/dashboard?v=${Date.now()}`}
                             style={{ backgroundColor: '#fff', border: '1px solid #ff9800', color: '#ff9800', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
                         >
                             ⚡ 강제 업데이트
                         </button>
                     </div>
+                    <div style={{ fontSize: '11px', color: '#888' }}>
+                        기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>}
+                    </div>
+
                 </div>
             </header>
 
