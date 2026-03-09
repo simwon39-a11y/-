@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getMessagesAction, sendMessageAction, getUserInfoAction } from './actions';
 import { markChatAsReadAction } from '@/app/api/unread/actions';
+import { refreshAppBadge } from '@/lib/badgeClient';
+
 
 function ChatContent() {
     const searchParams = useSearchParams();
@@ -31,7 +33,11 @@ function ChatContent() {
                 const data = await getMessagesAction(u.id, otherId);
                 setMessages(data);
                 await markChatAsReadAction(otherId);
+
+                // 앱 아이콘 숫자(배지) 즉시 갱신
+                await refreshAppBadge();
             };
+
             loadAndMark();
 
             const interval = setInterval(loadAndMark, 3000);

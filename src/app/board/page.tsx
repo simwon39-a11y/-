@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { getPostsByCategoryAction, createCommentAction } from './actions';
 import { PostCategory } from '@prisma/client';
 import { trackBoardViewAction } from '@/app/api/unread/actions';
+import { refreshAppBadge } from '@/lib/badgeClient';
+
 
 export default function BoardPage() {
 
@@ -38,10 +40,14 @@ export default function BoardPage() {
             setIsLoading(false);
 
             // 게시판을 확인했음을 기록 (읽지 않은 수 초기화용)
-            trackBoardViewAction('NOTICE');
-            trackBoardViewAction('RESOURCE');
-            trackBoardViewAction('FREE');
+            await trackBoardViewAction('NOTICE');
+            await trackBoardViewAction('RESOURCE');
+            await trackBoardViewAction('FREE');
+
+            // 앱 아이콘 숫자(배지) 즉시 갱신
+            await refreshAppBadge();
         }
+
         loadAllPosts();
     }, []);
 
