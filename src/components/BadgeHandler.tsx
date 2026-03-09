@@ -6,9 +6,15 @@ export default function BadgeHandler() {
     const [unreadCount, setUnreadCount] = useState(0);
 
     const updateBadge = async () => {
+        // 로그인 정보가 없으면 확인하지 않음
+        const userStr = localStorage.getItem('user');
+        if (!userStr) return;
+
         try {
             const res = await fetch('/api/unread');
+            if (res.status === 401) return; // 미인증 시 중단
             const data = await res.json();
+
 
             if (data.totalUnread !== undefined) {
                 const count = data.totalUnread;

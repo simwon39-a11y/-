@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import PushSubscriptionHandler from '@/components/PushSubscriptionHandler';
 import InstallPWA from '@/components/InstallPWA';
-import BadgeHandler from '@/components/BadgeHandler';
+
 
 
 interface DashboardClientProps {
@@ -49,8 +49,8 @@ export default function DashboardClient({
     return (
         <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
             <InstallPWA />
-            <BadgeHandler />
             {user && <PushSubscriptionHandler userId={user.id} />}
+
 
 
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
