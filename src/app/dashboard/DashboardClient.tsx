@@ -33,7 +33,9 @@ export default function DashboardClient({
     const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails);
     const [pushStatus, setPushStatus] = useState<'granted' | 'denied' | 'default' | 'loading'>('loading');
     const [isSubscribed, setIsSubscribed] = useState<boolean | 'loading'>('loading');
+    const [swVersion, setSwVersion] = useState<string>('확인 중...');
     const router = useRouter();
+
 
     // 읽지 않은 수 상세 정보 가져오기
     const fetchUnread = async () => {
@@ -69,6 +71,23 @@ export default function DashboardClient({
         if ('Notification' in window) {
             setPushStatus(Notification.permission);
         }
+
+        // 서비스 워커 버전 확인
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then(reg => {
+                if (reg && reg.active) {
+                    // sw.js의 첫 줄 주석에서 버전을 읽어오기 시도
+                    fetch('/sw.js').then(res => res.text()).then(text => {
+                        const match = text.match(/\/\/ Version: ([\d.]+)/);
+                        if (match) setSwVersion(match[1]);
+                        else setSwVersion('알 수 없음');
+                    });
+                } else {
+                    setSwVersion('비활성');
+                }
+            });
+        }
+
 
         // 컴포넌트 마운트 시 한 번 더 가져와서 최신화 (initial 데이터가 서버 시점일 수 있으므로)
         fetchUnread();
@@ -192,8 +211,9 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.2260
+                    버전: 26.03.09.2270
                 </div>
+
 
 
 
@@ -273,10 +293,12 @@ export default function DashboardClient({
 
                     <div style={{ fontSize: '11px', color: '#888', marginTop: '8px', borderTop: '1px solid #eee', paddingTop: '8px' }}>
                         <b>[상태 진단]</b><br />
-                        기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>} <br />
+                        기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>} |
+                        SW 버전: <span style={{ color: swVersion === '26.03.09.2255' ? 'green' : 'orange' }}>{swVersion}</span> <br />
                         키 상태: {vapidPublicKey ? <span style={{ color: 'green' }}>✅ 있음</span> : <span style={{ color: 'red' }}>❌ 없음</span>} <br />
                         현재 읽지 않은 총 수: <span style={{ color: 'blue', fontWeight: 'bold' }}>{unreadDetails ? (unreadDetails.messages + unreadDetails.notices + unreadDetails.resources + unreadDetails.frees) : 0}개</span>
                     </div>
+
 
                 </div>
             </header>
