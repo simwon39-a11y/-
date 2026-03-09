@@ -16,15 +16,19 @@ interface DashboardClientProps {
     initialResources: any[];
     initialFrees: any[];
     initialUnreadDetails?: any;
+    vapidPublicKey: string;
 }
+
 
 export default function DashboardClient({
     initialUser,
     initialNotices,
     initialResources,
     initialFrees,
-    initialUnreadDetails
+    initialUnreadDetails,
+    vapidPublicKey
 }: DashboardClientProps) {
+
     const [user] = useState<any>(initialUser);
     const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails);
     const [pushStatus, setPushStatus] = useState<'granted' | 'denied' | 'default' | 'loading'>('loading');
@@ -121,9 +125,8 @@ export default function DashboardClient({
                 return;
             }
 
-            const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-            if (!vapidKey) {
-                alert('VAPID 키가 설정되지 않았습니다.');
+            if (!vapidPublicKey) {
+                alert('VAPID 키가 설정되지 않았습니다. 관리자에게 문의하세요.');
                 return;
             }
 
@@ -131,9 +134,10 @@ export default function DashboardClient({
             if (!subscription) {
                 subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(vapidKey)
+                    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
                 });
             }
+
 
             const res = await fetch('/api/push/subscribe', {
                 method: 'POST',
@@ -180,8 +184,9 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.2005
+                    버전: 26.03.09.2150
                 </div>
+
 
 
                 {typeof window !== 'undefined' && !window.matchMedia('(display-mode: standalone)').matches && (

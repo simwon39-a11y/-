@@ -34,7 +34,9 @@ export default async function DashboardPage() {
             initialResources={resources}
             initialFrees={frees}
             initialUnreadDetails={unreadData.details}
+            vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''}
         />
     );
+
 }
 
