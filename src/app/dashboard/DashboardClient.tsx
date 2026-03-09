@@ -271,10 +271,13 @@ export default function DashboardClient({
                         </button>
                     </div>
 
-                    <div style={{ fontSize: '11px', color: '#888' }}>
-                        기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>} |
-                        키 상태: {vapidPublicKey ? <span style={{ color: 'green' }}>✅ 있음({vapidPublicKey.length})</span> : <span style={{ color: 'red' }}>❌ 없음</span>}
+                    <div style={{ fontSize: '11px', color: '#888', marginTop: '8px', borderTop: '1px solid #eee', paddingTop: '8px' }}>
+                        <b>[상태 진단]</b><br />
+                        기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>} <br />
+                        키 상태: {vapidPublicKey ? <span style={{ color: 'green' }}>✅ 있음</span> : <span style={{ color: 'red' }}>❌ 없음</span>} <br />
+                        현재 읽지 않은 총 수: <span style={{ color: 'blue', fontWeight: 'bold' }}>{unreadDetails ? (unreadDetails.messages + unreadDetails.notices + unreadDetails.resources + unreadDetails.frees) : 0}개</span>
                     </div>
+
                 </div>
             </header>
 
