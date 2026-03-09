@@ -16,14 +16,21 @@ export const metadata: Metadata = {
   title: "종무관리 시스템",
   description: "불교 사찰 회원 및 종무 관리 시스템",
   manifest: "/manifest.json",
-  themeColor: "#7c3aed",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "종무관리",
   },
 };
+
+export const viewport = {
+  themeColor: "#7c3aed",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 
 
 export default function RootLayout({
@@ -40,6 +47,14 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              window.deferredPrompt = null;
+              window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                window.deferredPrompt = e;
+                // 커스텀 이벤트로 알림
+                window.dispatchEvent(new Event('prompt-ready'));
+              });
+
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js').then(function(registration) {
@@ -56,4 +71,5 @@ export default function RootLayout({
     </html>
   );
 }
+
 

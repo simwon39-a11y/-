@@ -12,12 +12,24 @@ export default function InstallPWA() {
             setIsInstalled(true);
         }
 
+        // 전역에 이미 캡처된 것이 있는지 확인
+        if ((window as any).deferredPrompt) {
+            setDeferredPrompt((window as any).deferredPrompt);
+        }
+
         const handler = (e: any) => {
             e.preventDefault();
             setDeferredPrompt(e);
         };
 
+        const readyHandler = () => {
+            if ((window as any).deferredPrompt) {
+                setDeferredPrompt((window as any).deferredPrompt);
+            }
+        };
+
         window.addEventListener('beforeinstallprompt', handler);
+        window.addEventListener('prompt-ready', readyHandler);
 
         window.addEventListener('appinstalled', () => {
             setDeferredPrompt(null);
@@ -25,8 +37,12 @@ export default function InstallPWA() {
             console.log('PWA was installed');
         });
 
-        return () => window.removeEventListener('beforeinstallprompt', handler);
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handler);
+            window.removeEventListener('prompt-ready', readyHandler);
+        };
     }, []);
+
 
     const handleInstallClick = async () => {
         if (!deferredPrompt) return;
