@@ -55,17 +55,30 @@ export async function sendPushNotification(userId: number, title: string, body: 
                 await (db as any).pushSubscription.delete({ where: { id: sub.id } });
             }
             console.error('Push notification error:', err);
+            return `Error(${err.statusCode}): ${err.message || 'Unknown'}`;
         });
+
     });
 
 
     const results = await Promise.all(notifications);
     const successCount = results.filter(r => r !== undefined).length;
+    let lastError = '';
+
+    // 실패한 항목 중 마지막 에러 메시지 추출
+    for (const res of results) {
+        if (typeof res === 'string') {
+            lastError = res;
+        }
+    }
+
     return {
         total: subscriptions.length,
-        success: successCount
+        success: successCount,
+        lastError
     };
 }
+
 
 
 /**
