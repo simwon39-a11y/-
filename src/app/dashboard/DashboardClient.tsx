@@ -46,7 +46,15 @@ export default function DashboardClient({
                 if (data.pushCount !== undefined) {
                     setIsSubscribed(data.pushCount > 0);
                 }
+                // 실시간 배지 업데이트 추가
+                if ('setAppBadge' in navigator && data.totalUnread !== undefined) {
+                    const count = parseInt(data.totalUnread, 10);
+                    if (!isNaN(count)) {
+                        (navigator as any).setAppBadge(count).catch(console.error);
+                    }
+                }
             }
+
         } catch (err) {
             console.error('Fetch unread error:', err);
         }
@@ -184,8 +192,9 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.2240
+                    버전: 26.03.09.2255
                 </div>
+
 
 
                 {typeof window !== 'undefined' && !window.matchMedia('(display-mode: standalone)').matches && (

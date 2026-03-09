@@ -1,4 +1,5 @@
-// Version: 26.03.09.1820
+// Version: 26.03.09.2255
+
 self.addEventListener('push', function (event) {
     const data = event.data.json();
     const options = {
@@ -19,15 +20,22 @@ self.addEventListener('push', function (event) {
         try {
             if ('setAppBadge' in self.navigator) {
                 if (data.badge !== undefined) {
-                    await self.navigator.setAppBadge(data.badge);
+                    const count = parseInt(data.badge, 10);
+                    if (!isNaN(count)) {
+                        await self.navigator.setAppBadge(count);
+                    }
                 } else {
                     const res = await fetch('/api/unread', { credentials: 'include' });
                     const unreadData = await res.json();
                     if (unreadData.totalUnread !== undefined) {
-                        await self.navigator.setAppBadge(unreadData.totalUnread);
+                        const count = parseInt(unreadData.totalUnread, 10);
+                        if (!isNaN(count)) {
+                            await self.navigator.setAppBadge(count);
+                        }
                     }
                 }
             }
+
         } catch (err) {
             console.error('Badge update error:', err);
         }
