@@ -2,17 +2,25 @@ import webpush from 'web-push';
 import db from './db';
 import { getUnreadCounts } from './unread';
 
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+    process.env.VAPID_PUBLIC_KEY ||
+    'BJRBZ0FKFSixD5QLvuhB-9L3W11mDrUFqbpK3srg_Oyxq7f8ORFimfGbD0UiCX9fCPEwez-By3I3_RacJIGVFj4';
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY ||
+    'E8Dz80lRrPKPCT-g0jBXjTok8g4TgenE3ZKXFVZj5Vw';
 const vapidMailto = process.env.VAPID_MAILTO || 'mailto:admin@example.com';
 
 if (vapidPublicKey && vapidPrivateKey) {
-    webpush.setVapidDetails(
-        vapidMailto,
-        vapidPublicKey,
-        vapidPrivateKey
-    );
+    try {
+        webpush.setVapidDetails(
+            vapidMailto,
+            vapidPublicKey,
+            vapidPrivateKey
+        );
+    } catch (err) {
+        console.error('VAPID initialization error:', err);
+    }
 }
+
 
 
 /**
