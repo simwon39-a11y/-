@@ -44,7 +44,7 @@ export async function sendMessageAction(senderId: number, receiverId: number, te
             receiverId,
             `${message.sender.name} 법사님`,
             text,
-            `/chat`
+            `/chat?to=${senderId}`
         );
     } catch (e) {
         console.error('Failed to send push notification:', e);
@@ -52,6 +52,7 @@ export async function sendMessageAction(senderId: number, receiverId: number, te
 
     return message;
 }
+
 /**
  * 툭정 사용자의 기본 정보를 가져옵니다.
  */
@@ -60,4 +61,45 @@ export async function getUserInfoAction(userId: number) {
         where: { id: userId },
         select: { id: true, name: true, buddhistName: true }
     });
+}
+
+/**
+ * 내가 대화한 사람들의 목록을 가져옵니다. (최근 메시지 순)
+ */
+export async function getChatListAction(myId: number) {
+    // 1. 내가 관여된 모든 메시지 가져오기
+    const messages = await db.message.findMany({
+        where: {
+            OR: [
+                { senderId: myId },
+                { receiverId: myId }
+            ]
+        },
+        orderBy: {
+            createdAt: 'desc'
+        },
+        include: {
+            sender: { select: { id: true, name: true, buddhistName: true } },
+            receiver: { select: { id: true, name: true, buddhistName: true } }
+        }
+    });
+
+    // 2. 상대방 아이디별로 가장 최근 메시지만 남기기
+    const partners: any[] = [];
+    const seenIds = new Set<number>();
+
+    for (const msg of messages) {
+        const other = msg.senderId === myId ? msg.receiver : msg.sender;
+        if (!seenIds.has(other.id)) {
+            seenIds.add(other.id);
+            partners.push({
+                user: other,
+                lastMessage: msg.text,
+                lastTime: msg.createdAt,
+                isRead: msg.senderId === myId ? true : msg.isRead
+            });
+        }
+    }
+
+    return partners;
 }

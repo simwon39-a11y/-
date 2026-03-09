@@ -137,8 +137,9 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.2450
+                    버전: 26.03.09.2460
                 </div>
+
 
                 {isSubscribed === false && (
                     <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#fff9c4', borderRadius: '12px', border: '1px solid #fbc02d', textAlign: 'left' }}>
