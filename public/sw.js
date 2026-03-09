@@ -18,9 +18,10 @@ self.addEventListener('push', function (event) {
                 .then(res => res.json())
                 .then(unreadData => {
                     if (unreadData.totalUnread !== undefined && 'setAppBadge' in navigator) {
-                        return (navigator as any).setAppBadge(unreadData.totalUnread);
+                        return navigator.setAppBadge(unreadData.totalUnread);
                     }
                 }).catch(err => console.error('SW badge error:', err))
+
         ])
     );
 });
