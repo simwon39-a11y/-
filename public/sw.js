@@ -14,13 +14,16 @@ self.addEventListener('push', function (event) {
         Promise.all([
             self.registration.showNotification(data.title, options),
             // 백그라운드에서 읽지 않은 수 가져와 배지 갱신 시도
-            fetch('/api/unread')
+            fetch('/api/unread', { credentials: 'include' })
                 .then(res => res.json())
                 .then(unreadData => {
-                    if (unreadData.totalUnread !== undefined && 'setAppBadge' in navigator) {
-                        return navigator.setAppBadge(unreadData.totalUnread);
+                    if (unreadData.totalUnread !== undefined) {
+                        if ('setAppBadge' in self.navigator) {
+                            return self.navigator.setAppBadge(unreadData.totalUnread);
+                        }
                     }
                 }).catch(err => console.error('SW badge error:', err))
+
 
         ])
     );

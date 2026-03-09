@@ -22,14 +22,31 @@ export default function DashboardClient({
     initialFrees
 }: DashboardClientProps) {
     const [user] = useState<any>(initialUser);
+    const [unreadDetails, setUnreadDetails] = useState<any>(null);
     const router = useRouter();
 
     useEffect(() => {
-        // 클라이언트 사이드 저장소도 동기화 (기존 코드와 호환성을 위해)
         if (initialUser) {
             localStorage.setItem('user', JSON.stringify(initialUser));
         }
+
+        // 읽지 않은 수 상세 정보 가져오기
+        async function fetchUnread() {
+            try {
+                const res = await fetch('/api/unread');
+                if (res.ok) {
+                    const data = await res.json();
+                    setUnreadDetails(data.details);
+                }
+            } catch (err) {
+                console.error('Fetch unread error:', err);
+            }
+        }
+        fetchUnread();
+        const interval = setInterval(fetchUnread, 30000); // 30초마다 갱신
+        return () => clearInterval(interval);
     }, [initialUser]);
+
 
     const handleLogout = async () => {
         // 로그아웃 시 쿠키와 로컬스토리지 모두 제거
@@ -59,11 +76,19 @@ export default function DashboardClient({
             </header>
 
             {/* 1. 최신 공지사항 */}
-            <section className="card" style={{ marginBottom: 'var(--spacing-md)', border: '2px solid var(--accent-primary)' }}>
+            <section className="card" style={{ marginBottom: 'var(--spacing-md)', border: '2px solid var(--accent-primary)', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <h2 style={{ fontSize: '22px', color: 'var(--accent-primary)', margin: 0 }}>🔔 최근 공지사항</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <h2 style={{ fontSize: '22px', color: 'var(--accent-primary)', margin: 0 }}>🔔 최근 공지사항</h2>
+                        {unreadDetails?.notices > 0 && (
+                            <span style={{ backgroundColor: 'red', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '14px', fontWeight: 'bold' }}>
+                                {unreadDetails.notices}
+                            </span>
+                        )}
+                    </div>
                     <Link href="/board" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
                 </div>
+
                 {initialNotices.length > 0 ? (
                     <div>
                         <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>{initialNotices[0].title}</h3>
@@ -80,14 +105,22 @@ export default function DashboardClient({
             </section>
 
             {/* 2. 최근 불교 자료 */}
-            <section className="card" style={{ marginBottom: 'var(--spacing-md)', border: '1px solid #4caf50' }}>
+            <section className="card" style={{ marginBottom: 'var(--spacing-md)', border: '1px solid #4caf50', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <h2 style={{ fontSize: '20px', color: '#4caf50', margin: 0 }}>📖 최근 불교 자료</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <h2 style={{ fontSize: '20px', color: '#4caf50', margin: 0 }}>📖 최근 불교 자료</h2>
+                        {unreadDetails?.resources > 0 && (
+                            <span style={{ backgroundColor: '#4caf50', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '14px', fontWeight: 'bold' }}>
+                                {unreadDetails.resources}
+                            </span>
+                        )}
+                    </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <Link href="/board/new?cat=RESOURCE" style={{ fontSize: '14px', color: '#4caf50', fontWeight: 'bold', textDecoration: 'none' }}>[글쓰기]</Link>
                         <Link href="/board" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
                     </div>
                 </div>
+
                 {initialResources.length > 0 ? (
                     <div>
                         <Link href="/board" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -103,14 +136,22 @@ export default function DashboardClient({
             </section>
 
             {/* 3. 최근 자유게시판 */}
-            <section className="card" style={{ marginBottom: 'var(--spacing-md)', border: '1px solid #2196f3' }}>
+            <section className="card" style={{ marginBottom: 'var(--spacing-md)', border: '1px solid #2196f3', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <h2 style={{ fontSize: '20px', color: '#2196f3', margin: 0 }}>💬 최근 자유 게시글</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <h2 style={{ fontSize: '20px', color: '#2196f3', margin: 0 }}>💬 최근 자유 게시글</h2>
+                        {unreadDetails?.frees > 0 && (
+                            <span style={{ backgroundColor: '#2196f3', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '14px', fontWeight: 'bold' }}>
+                                {unreadDetails.frees}
+                            </span>
+                        )}
+                    </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <Link href="/board/new?cat=FREE" style={{ fontSize: '14px', color: '#2196f3', fontWeight: 'bold', textDecoration: 'none' }}>[글쓰기]</Link>
                         <Link href="/board" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
                     </div>
                 </div>
+
                 {initialFrees.length > 0 ? (
                     <div>
                         <Link href="/board" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -130,9 +171,15 @@ export default function DashboardClient({
                     🔍 회원 및 사찰 검색
                 </Link>
 
-                <Link href="/chat" className="btn btn-secondary" style={{ textDecoration: 'none', padding: '20px', fontSize: '20px' }}>
+                <Link href="/chat" className="btn btn-secondary" style={{ textDecoration: 'none', padding: '20px', fontSize: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
                     💬 따뜻한 대화 (채팅)
+                    {unreadDetails?.messages > 0 && (
+                        <span style={{ backgroundColor: 'red', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '14px', fontWeight: 'bold' }}>
+                            {unreadDetails.messages}
+                        </span>
+                    )}
                 </Link>
+
 
                 <button onClick={handleLogout} className="btn btn-secondary" style={{ width: '100%', padding: '15px', fontSize: '16px', marginTop: '10px', backgroundColor: '#f0f0f0', color: '#666', border: 'none', cursor: 'pointer' }}>
                     로그아웃
