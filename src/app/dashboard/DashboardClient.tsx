@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import PushSubscriptionHandler from '@/components/PushSubscriptionHandler';
 import InstallPWA from '@/components/InstallPWA';
+import { sendTestPushAction } from './actions';
+
 
 
 
@@ -115,8 +117,9 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.1915
+                    버전: 26.03.09.2005
                 </div>
+
 
                 {typeof window !== 'undefined' && !window.matchMedia('(display-mode: standalone)').matches && (
                     <div style={{ fontSize: '12px', color: '#666', marginTop: '8px', padding: '10px', backgroundColor: '#fff9c4', borderRadius: '8px' }}>
@@ -157,12 +160,23 @@ export default function DashboardClient({
                             🧹 배지 지우기
                         </button>
                         <button
+                            onClick={async () => {
+                                const res = await sendTestPushAction();
+                                if (res.success) alert(res.message);
+                                else alert('오류: ' + res.message);
+                            }}
+                            style={{ backgroundColor: '#fff3e0', border: '1px solid #ff9800', color: '#e65100', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                            🚀 실제 푸시 테스트
+                        </button>
+                        <button
                             onClick={() => window.location.href = `/dashboard?v=${Date.now()}`}
                             style={{ backgroundColor: '#fff', border: '1px solid #ff9800', color: '#ff9800', borderRadius: '4px', padding: '4px 12px', fontSize: '12px', cursor: 'pointer' }}
                         >
                             ⚡ 강제 업데이트
                         </button>
                     </div>
+
                     <div style={{ fontSize: '11px', color: '#888' }}>
                         기기 배지 지원: {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? <span style={{ color: 'green' }}>✅ 지원됨</span> : <span style={{ color: 'red' }}>❌ 미지원</span>}
                     </div>
