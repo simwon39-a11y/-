@@ -4,6 +4,8 @@ import db from '@/lib/db';
 
 import { PostCategory } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { sendGlobalPushNotification } from '@/lib/push';
+
 /**
  * 특정 카테고리의 모든 게시물을 가져옵니다. (작성자 정보 포함)
  */
@@ -94,7 +96,20 @@ export async function createPostAction(formData: FormData) {
         revalidatePath('/dashboard');
         revalidatePath('/admin/notices/manage');
 
+        // 새 글 알림을 모든 사용자에게 보냅니다. (작성자 제외 가능)
+        const categoryName = category === 'NOTICE' ? '공지사항' :
+            category === 'RESOURCE' ? '불교 자료' : '자유게시판';
+
+        // 백그라운드에서 실행되도록 기다리지 않고 보냅니다.
+        sendGlobalPushNotification(
+            `새로운 ${categoryName}이 등록되었습니다.`,
+            title,
+            '/board',
+            authorId
+        );
+
         return { success: true };
+
     } catch (error) {
         console.error('게시물 등록 중 오류:', error);
         return { success: false, message: '등록 중 문제가 발생했습니다.' };
@@ -108,14 +123,25 @@ export async function createCommentAction(postId: number, authorId: number, text
     if (!text) return { success: false, message: '내용을 입력해 주세요.' };
 
     try {
-        await db.comment.create({
+        const comment = await db.comment.create({
             data: {
                 text,
                 postId,
                 authorId
-            }
+            },
+            include: { post: true }
         });
+
+        // 댓글 알림을 모든 사용자에게 보냅니다.
+        sendGlobalPushNotification(
+            `새로운 답글이 등록되었습니다.`,
+            `${comment.post.title}: ${text}`,
+            '/board',
+            authorId
+        );
+
         return { success: true };
+
     } catch (error) {
         return { success: false, message: '댓글 등록 중 오류가 발생했습니다.' };
     }

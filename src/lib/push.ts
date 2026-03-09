@@ -44,3 +44,35 @@ export async function sendPushNotification(userId: number, title: string, body: 
 
     await Promise.all(notifications);
 }
+
+/**
+ * 모든 구독자에게 푸시 알림을 보냅니다.
+ */
+export async function sendGlobalPushNotification(title: string, body: string, url: string = '/', exceptUserId?: number) {
+    const subscriptions = await (db as any).pushSubscription.findMany({
+        where: exceptUserId ? { userId: { not: exceptUserId } } : {}
+    });
+
+    const notifications = (subscriptions as any[]).map(sub => {
+        const pushSubscription = {
+            endpoint: sub.endpoint,
+            keys: {
+                p256dh: sub.p256dh,
+                auth: sub.auth
+            }
+        };
+
+        return webpush.sendNotification(
+            pushSubscription,
+            JSON.stringify({ title, body, url })
+        ).catch(async (err: any) => {
+            if (err.statusCode === 404 || err.statusCode === 410) {
+                await (db as any).pushSubscription.delete({ where: { id: sub.id } });
+            }
+            console.error('Global Push notification error:', err);
+        });
+    });
+
+    await Promise.all(notifications);
+}
+
