@@ -1,16 +1,15 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getPostsByCategoryAction, createCommentAction } from './actions';
-import { PostCategory } from '@prisma/client';
+type PostCategory = 'NOTICE' | 'RESOURCE' | 'FREE';
 import { trackBoardViewAction } from '@/app/api/unread/actions';
 import { refreshAppBadge } from '@/lib/badgeClient';
 
 
-export default function BoardPage() {
-
+function BoardContent() {
     const [notices, setNotices] = useState<any[]>([]);
     const [resources, setResources] = useState<any[]>([]);
     const [freePosts, setFreePosts] = useState<any[]>([]);
@@ -31,6 +30,7 @@ export default function BoardPage() {
     const activeCategory = searchParams.get('cat') as PostCategory | null;
 
     useEffect(() => {
+        console.log('BoardPage Active Category:', activeCategory);
         const userStr = localStorage.getItem('user');
         if (userStr) {
             setCurrentUser(JSON.parse(userStr));
@@ -41,7 +41,7 @@ export default function BoardPage() {
             try {
                 if (activeCategory) {
                     // 특정 카테고리만 로딩
-                    const data = await getPostsByCategoryAction(activeCategory, 30);
+                    const data = await getPostsByCategoryAction(activeCategory as any, 30);
                     if (activeCategory === 'NOTICE') {
                         setNotices(data);
                         setResources([]);
@@ -56,7 +56,7 @@ export default function BoardPage() {
                         setResources([]);
                     }
 
-                    await trackBoardViewAction(activeCategory);
+                    await trackBoardViewAction(activeCategory as any);
                 } else {
                     // 카테고리 없으면 전체 로딩
                     const [nData, rData, fData] = await Promise.all([
@@ -119,7 +119,6 @@ export default function BoardPage() {
                     {post.author?.buddhistName ? `${post.author.buddhistName} ` : ''}{post.author?.name || '익명'} · {new Date(post.createdAt).toLocaleDateString()}
                 </div>
 
-                {/* 사진 미리보기 */}
                 {post.images && post.images.length > 0 && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '5px', marginBottom: '10px' }}>
                         {post.images.map((img: any) => (
@@ -133,7 +132,6 @@ export default function BoardPage() {
                     </div>
                 )}
 
-                {/* 내용 노출 */}
                 {(showContent || expandedId === post.id) && (
                     <div style={{ fontSize: '18px', lineHeight: '1.6', whiteSpace: 'pre-wrap', marginTop: '10px', color: '#333' }}>
                         {post.content || '내용이 없습니다.'}
@@ -141,7 +139,6 @@ export default function BoardPage() {
                 )}
             </div>
 
-            {/* 답글 영역 */}
             {post.category === 'RESOURCE' && expandedId === post.id && (
                 <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
                     <h4 style={{ fontSize: '16px', marginBottom: '10px' }}>답글 ({post.comments.length})</h4>
@@ -195,7 +192,6 @@ export default function BoardPage() {
                 </div>
             ) : (
                 <>
-                    {/* 1. 공지사항 섹션 */}
                     {(!activeCategory || activeCategory === 'NOTICE') && (
                         <section style={{ marginBottom: '40px' }}>
                             {!activeCategory && <h2 style={{ fontSize: '24px', borderBottom: '2px solid var(--accent-primary)', paddingBottom: '5px', marginBottom: '15px' }}>📢 공지사항</h2>}
@@ -217,7 +213,6 @@ export default function BoardPage() {
                         </section>
                     )}
 
-                    {/* 2. 불교 자료 게시판 섹션 */}
                     {(!activeCategory || activeCategory === 'RESOURCE') && (
                         <section style={{ marginBottom: '40px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #4caf50', marginBottom: '15px', paddingBottom: '5px' }}>
@@ -242,7 +237,6 @@ export default function BoardPage() {
                         </section>
                     )}
 
-                    {/* 3. 자유게시판 섹션 */}
                     {(!activeCategory || activeCategory === 'FREE') && (
                         <section style={{ marginBottom: '40px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #2196f3', marginBottom: '15px', paddingBottom: '5px' }}>
@@ -269,14 +263,12 @@ export default function BoardPage() {
                 </>
             )}
 
-            {/* 이미지 미리보기 모달 */}
             {previewImage && (
                 <div onClick={() => setPreviewImage(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'zoom-out' }}>
                     <img src={previewImage} style={{ maxWidth: '95%', maxHeight: '95%', borderRadius: '8px' }} />
                 </div>
             )}
 
-            {/* 글쓰기 버튼 (전체 보기일 때만 하단에 둠) */}
             {!activeCategory && (
                 <div style={{ position: 'sticky', bottom: '20px', display: 'flex', justifyContent: 'center' }}>
                     <Link href="/board/new" className="btn btn-primary" style={{ boxShadow: '0 4px 10px rgba(0,0,0,0.2)', padding: '15px 30px', fontSize: '20px', textDecoration: 'none' }}>
@@ -285,5 +277,17 @@ export default function BoardPage() {
                 </div>
             )}
         </main>
+    );
+}
+
+export default function BoardPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ textAlign: 'center', padding: '50px' }}>
+                <p style={{ color: 'var(--text-secondary)' }}>화면을 준비 중입니다...</p>
+            </div>
+        }>
+            <BoardContent />
+        </Suspense>
     );
 }
