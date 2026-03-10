@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { getPostsByCategoryAction, createCommentAction } from './actions';
+import { getPostsByCategoryAction, getPostDetailAction, createCommentAction } from './actions';
 type PostCategory = 'NOTICE' | 'RESOURCE' | 'FREE';
 import { trackBoardViewAction } from '@/app/api/unread/actions';
 import { refreshAppBadge } from '@/lib/badgeClient';
@@ -15,6 +15,7 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
     const [freePosts, setFreePosts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [detailLoadingId, setDetailLoadingId] = useState<number | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [commentText, setCommentText] = useState<{ [postId: number]: string }>({});
     const [isPending, startTransition] = useTransition();
@@ -26,7 +27,6 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
     const [currentUser, setCurrentUser] = useState<any>(null);
 
     useEffect(() => {
-        console.log('Rendering BoardContent for category:', activeCategory);
         const userStr = localStorage.getItem('user');
         if (userStr) {
             setCurrentUser(JSON.parse(userStr));
@@ -36,7 +36,7 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
             setIsLoading(true);
             try {
                 if (activeCategory) {
-                    const data = await getPostsByCategoryAction(activeCategory as any, 30);
+                    const data = await getPostsByCategoryAction(activeCategory as any, 15);
                     if (activeCategory === 'NOTICE') {
                         setNotices(data);
                         setResources([]);
@@ -50,22 +50,23 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                         setNotices([]);
                         setResources([]);
                     }
-                    await trackBoardViewAction(activeCategory as any);
+                    // 비차단식(Background) 업데이트
+                    trackBoardViewAction(activeCategory as any);
                 } else {
                     const [nData, rData, fData] = await Promise.all([
-                        getPostsByCategoryAction('NOTICE', 30),
-                        getPostsByCategoryAction('RESOURCE', 30),
-                        getPostsByCategoryAction('FREE', 30)
+                        getPostsByCategoryAction('NOTICE', 15),
+                        getPostsByCategoryAction('RESOURCE', 15),
+                        getPostsByCategoryAction('FREE', 15)
                     ]);
                     setNotices(nData);
                     setResources(rData);
                     setFreePosts(fData);
 
-                    await trackBoardViewAction('NOTICE');
-                    await trackBoardViewAction('RESOURCE');
-                    await trackBoardViewAction('FREE');
+                    trackBoardViewAction('NOTICE');
+                    trackBoardViewAction('RESOURCE');
+                    trackBoardViewAction('FREE');
                 }
-                await refreshAppBadge();
+                refreshAppBadge();
             } catch (error) {
                 console.error('Load posts error:', error);
             } finally {
@@ -76,7 +77,39 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
         loadFilteredPosts();
     }, [activeCategory]);
 
-    const toggleId = (id: number) => setExpandedId(expandedId === id ? null : id);
+    const updatePostInLists = (postId: number, detailedData: any) => {
+        const updateList = (list: any[]) => list.map(p => p.id === postId ? { ...p, ...detailedData } : p);
+        setNotices(prev => updateList(prev));
+        setResources(prev => updateList(prev));
+        setFreePosts(prev => updateList(prev));
+    };
+
+    const toggleId = async (postId: number) => {
+        if (expandedId === postId) {
+            setExpandedId(null);
+            return;
+        }
+
+        setExpandedId(postId);
+
+        // 이미 데이터를 가져왔는지 확인 (content가 있으면 가져온 것으로 간주)
+        const allPosts = [...notices, ...resources, ...freePosts];
+        const post = allPosts.find(p => p.id === postId);
+
+        if (post && !post.content) {
+            setDetailLoadingId(postId);
+            try {
+                const detailedData = await getPostDetailAction(postId);
+                if (detailedData) {
+                    updatePostInLists(postId, detailedData);
+                }
+            } catch (err) {
+                console.error('Fetch post detail error:', err);
+            } finally {
+                setDetailLoadingId(null);
+            }
+        }
+    };
 
     const handleCommentSubmit = async (postId: number) => {
         if (!currentUser) return alert('로그인이 필요합니다.');
@@ -87,8 +120,11 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
             const res = await createCommentAction(postId, currentUser.id, text);
             if (res.success) {
                 setCommentText(prev => ({ ...prev, [postId]: '' }));
-                const rData = await getPostsByCategoryAction('RESOURCE');
-                setResources(rData);
+                // 댓글 갱신을 위해 상세 정보 다시 가져오기
+                const detailedData = await getPostDetailAction(postId);
+                if (detailedData) {
+                    updatePostInLists(postId, detailedData);
+                }
             }
         });
     };
@@ -101,6 +137,14 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                     {post.author?.buddhistName ? `${post.author.buddhistName} ` : ''}{post.author?.name || '익명'} · {new Date(post.createdAt).toLocaleDateString()}
                 </div>
 
+                {/* 지연 로딩 중 표시 */}
+                {detailLoadingId === post.id && (
+                    <div style={{ padding: '10px', color: 'var(--accent-primary)', fontSize: '14px', fontStyle: 'italic' }}>
+                        내용을 불러오는 중... ✨
+                    </div>
+                )}
+
+                {/* 사진 미리보기 (데이터가 있을 때만) */}
                 {post.images && post.images.length > 0 && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '5px', marginBottom: '10px' }}>
                         {post.images.map((img: any) => (
@@ -114,14 +158,16 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                     </div>
                 )}
 
-                {(showContent || expandedId === post.id) && (
+                {/* 내용 노출 (공지는 기본 노출 정책 유지하되 데이터 없으면 위에서 로딩됨) */}
+                {(showContent || expandedId === post.id) && post.content && (
                     <div style={{ fontSize: '18px', lineHeight: '1.6', whiteSpace: 'pre-wrap', marginTop: '10px', color: '#333' }}>
-                        {post.content || '내용이 없습니다.'}
+                        {post.content}
                     </div>
                 )}
             </div>
 
-            {post.category === 'RESOURCE' && expandedId === post.id && (
+            {/* 답글 영역 */}
+            {post.category === 'RESOURCE' && expandedId === post.id && post.comments && (
                 <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
                     <h4 style={{ fontSize: '16px', marginBottom: '10px' }}>답글 ({post.comments.length})</h4>
                     {post.comments.map((comment: any) => (
@@ -164,7 +210,7 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
 
             {isLoading ? (
                 <div style={{ textAlign: 'center', padding: '50px' }}>
-                    <p style={{ color: 'var(--text-secondary)' }}>정보를 불러오는 중입니다...</p>
+                    <p style={{ color: 'var(--text-secondary)' }}>목록을 불러오는 중입니다...</p>
                 </div>
             ) : (
                 <>
@@ -172,7 +218,7 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                     {(isAllMode || isNoticeMode) && (
                         <section style={{ marginBottom: '40px' }}>
                             {isAllMode && <h2 style={{ fontSize: '24px', borderBottom: '2px solid var(--accent-primary)', paddingBottom: '5px', marginBottom: '15px' }}>📢 공지사항</h2>}
-                            {notices.length > 0 ? notices.slice(0, noticeLimit).map(post => renderPost(post, true)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>공지사항이 없습니다.</p>}
+                            {notices.length > 0 ? notices.slice(0, noticeLimit).map(post => renderPost(post, isNoticeMode)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>공지사항이 없습니다.</p>}
                             {notices.length > noticeLimit && (
                                 <button onClick={() => setNoticeLimit(prev => prev + 10)} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
                                     공지사항 더보기 (현재 {noticeLimit}/{notices.length}) ▼
@@ -229,6 +275,27 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                 </div>
             )}
         </main>
+    );
+}
+
+{
+    previewImage && (
+        <div onClick={() => setPreviewImage(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'zoom-out' }}>
+            <img src={previewImage} style={{ maxWidth: '95%', maxHeight: '95%', borderRadius: '8px' }} />
+        </div>
+    )
+}
+
+{
+    isAllMode && (
+        <div style={{ position: 'sticky', bottom: '20px', display: 'flex', justifyContent: 'center' }}>
+            <Link href="/board/new" className="btn btn-primary" style={{ boxShadow: '0 4px 10px rgba(0,0,0,0.2)', padding: '15px 30px', fontSize: '20px', textDecoration: 'none' }}>
+                글쓰기 ✍️
+            </Link>
+        </div>
+    )
+}
+        </main >
     );
 }
 

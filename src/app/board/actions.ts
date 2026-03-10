@@ -7,35 +7,41 @@ import { revalidatePath } from 'next/cache';
 import { sendGlobalPushNotification } from '@/lib/push';
 
 /**
- * 특정 카테고리의 모든 게시물을 가져옵니다. (작성자 정보 포함)
+ * 특정 카테고리의 모든 게시물을 가져옵니다. (최소 정보만: ID, 제목, 카테고리, 작성자, 날짜)
  */
-export async function getPostsByCategoryAction(category: PostCategory, limit?: number, includeDetails: boolean = true) {
+export async function getPostsByCategoryAction(category: PostCategory, limit: number = 15) {
     return await db.post.findMany({
         where: { category },
         take: limit,
-        include: includeDetails ? {
-            images: true,
-            author: true,
-            comments: {
-                include: { author: true },
-                orderBy: { createdAt: 'asc' }
+        select: {
+            id: true,
+            title: true,
+            category: true,
+            createdAt: true,
+            author: {
+                select: {
+                    name: true,
+                    buddhistName: true
+                }
             }
-        } : {
-            author: true
         },
         orderBy: { createdAt: 'desc' }
     });
 }
 
 /**
- * 특정 ID의 게시물 하나를 가져옵니다.
+ * 특정 ID의 게시물 상세 정보(본문, 사진, 댓글)를 가져옵니다.
  */
-export async function getPostByIdAction(id: number) {
+export async function getPostDetailAction(id: number) {
     return await db.post.findUnique({
         where: { id },
         include: {
             images: true,
-            author: true
+            author: true,
+            comments: {
+                include: { author: true },
+                orderBy: { createdAt: 'asc' }
+            }
         }
     });
 }
