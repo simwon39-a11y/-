@@ -9,7 +9,7 @@ import { trackBoardViewAction } from '@/app/api/unread/actions';
 import { refreshAppBadge } from '@/lib/badgeClient';
 
 
-function BoardContent() {
+function BoardContent({ activeCategory }: { activeCategory: PostCategory | null }) {
     const [notices, setNotices] = useState<any[]>([]);
     const [resources, setResources] = useState<any[]>([]);
     const [freePosts, setFreePosts] = useState<any[]>([]);
@@ -23,14 +23,10 @@ function BoardContent() {
     const [resourceLimit, setResourceLimit] = useState(5);
     const [freeLimit, setFreeLimit] = useState(5);
 
-    // 현재 접속한 사용자 정보
     const [currentUser, setCurrentUser] = useState<any>(null);
 
-    const searchParams = useSearchParams();
-    const activeCategory = searchParams.get('cat') as PostCategory | null;
-
     useEffect(() => {
-        console.log('BoardPage Active Category:', activeCategory);
+        console.log('Rendering BoardContent for category:', activeCategory);
         const userStr = localStorage.getItem('user');
         if (userStr) {
             setCurrentUser(JSON.parse(userStr));
@@ -40,7 +36,6 @@ function BoardContent() {
             setIsLoading(true);
             try {
                 if (activeCategory) {
-                    // 특정 카테고리만 로딩
                     const data = await getPostsByCategoryAction(activeCategory as any, 30);
                     if (activeCategory === 'NOTICE') {
                         setNotices(data);
@@ -55,10 +50,8 @@ function BoardContent() {
                         setNotices([]);
                         setResources([]);
                     }
-
                     await trackBoardViewAction(activeCategory as any);
                 } else {
-                    // 카테고리 없으면 전체 로딩
                     const [nData, rData, fData] = await Promise.all([
                         getPostsByCategoryAction('NOTICE', 30),
                         getPostsByCategoryAction('RESOURCE', 30),
@@ -72,8 +65,6 @@ function BoardContent() {
                     await trackBoardViewAction('RESOURCE');
                     await trackBoardViewAction('FREE');
                 }
-
-                // 앱 아이콘 숫자(배지) 즉시 갱신
                 await refreshAppBadge();
             } catch (error) {
                 console.error('Load posts error:', error);
@@ -85,15 +76,7 @@ function BoardContent() {
         loadFilteredPosts();
     }, [activeCategory]);
 
-
-    const toggleNotice = (id: number) => {
-        setExpandedId(expandedId === id ? null : id);
-    };
-
-    const handleImageClick = (e: React.MouseEvent, url: string) => {
-        e.stopPropagation();
-        setPreviewImage(url);
-    };
+    const toggleId = (id: number) => setExpandedId(expandedId === id ? null : id);
 
     const handleCommentSubmit = async (postId: number) => {
         if (!currentUser) return alert('로그인이 필요합니다.');
@@ -104,7 +87,6 @@ function BoardContent() {
             const res = await createCommentAction(postId, currentUser.id, text);
             if (res.success) {
                 setCommentText(prev => ({ ...prev, [postId]: '' }));
-                // 자료 다시 불러오기
                 const rData = await getPostsByCategoryAction('RESOURCE');
                 setResources(rData);
             }
@@ -113,7 +95,7 @@ function BoardContent() {
 
     const renderPost = (post: any, showContent: boolean) => (
         <div key={post.id} className="card" style={{ marginBottom: '15px', border: expandedId === post.id ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)' }}>
-            <div onClick={() => toggleNotice(post.id)} style={{ cursor: 'pointer' }}>
+            <div onClick={() => toggleId(post.id)} style={{ cursor: 'pointer' }}>
                 <h3 style={{ fontSize: '20px', marginBottom: '5px' }}>{post.title}</h3>
                 <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
                     {post.author?.buddhistName ? `${post.author.buddhistName} ` : ''}{post.author?.name || '익명'} · {new Date(post.createdAt).toLocaleDateString()}
@@ -125,7 +107,7 @@ function BoardContent() {
                             <img
                                 key={img.id}
                                 src={img.url}
-                                onClick={(e) => handleImageClick(e, img.url)}
+                                onClick={(e) => { e.stopPropagation(); setPreviewImage(img.url); }}
                                 style={{ width: '100%', height: '60px', objectFit: 'cover', borderRadius: '4px', cursor: 'zoom-in' }}
                             />
                         ))}
@@ -163,26 +145,20 @@ function BoardContent() {
         </div>
     );
 
-    const getTitle = () => {
-        if (activeCategory === 'NOTICE') return '공지사항';
-        if (activeCategory === 'RESOURCE') return '불교 자료';
-        if (activeCategory === 'FREE') return '자유게시판';
-        return '신행 및 소식';
-    };
+    const isNoticeMode = activeCategory === 'NOTICE';
+    const isResourceMode = activeCategory === 'RESOURCE';
+    const isFreeMode = activeCategory === 'FREE';
+    const isAllMode = !activeCategory;
+
+    const mainTitle = isNoticeMode ? '공지사항' : isResourceMode ? '불교 자료' : isFreeMode ? '자유게시판' : '신행 및 소식';
 
     return (
         <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
             <header style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: '10px 0', position: 'sticky', top: 0, zIndex: 10 }}>
-                <h1 style={{ color: 'var(--accent-primary)', fontSize: '24px' }}>{getTitle()}</h1>
+                <h1 style={{ color: 'var(--accent-primary)', fontSize: '24px' }}>{mainTitle}</h1>
                 <Link href="/dashboard" style={{
-                    textDecoration: 'none',
-                    color: '#fff',
-                    backgroundColor: 'var(--text-secondary)',
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                    textDecoration: 'none', color: '#fff', backgroundColor: 'var(--text-secondary)',
+                    padding: '8px 16px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold', boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
                 }}>나가기 🚪</Link>
             </header>
 
@@ -192,69 +168,45 @@ function BoardContent() {
                 </div>
             ) : (
                 <>
-                    {(!activeCategory || activeCategory === 'NOTICE') && (
+                    {/* 공지사항 */}
+                    {(isAllMode || isNoticeMode) && (
                         <section style={{ marginBottom: '40px' }}>
-                            {!activeCategory && <h2 style={{ fontSize: '24px', borderBottom: '2px solid var(--accent-primary)', paddingBottom: '5px', marginBottom: '15px' }}>📢 공지사항</h2>}
-                            {notices.length > 0 ? (
-                                notices.slice(0, noticeLimit).map(post => renderPost(post, true))
-                            ) : (
-                                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>공지사항이 없습니다.</p>
-                            )}
-
+                            {isAllMode && <h2 style={{ fontSize: '24px', borderBottom: '2px solid var(--accent-primary)', paddingBottom: '5px', marginBottom: '15px' }}>📢 공지사항</h2>}
+                            {notices.length > 0 ? notices.slice(0, noticeLimit).map(post => renderPost(post, true)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>공지사항이 없습니다.</p>}
                             {notices.length > noticeLimit && (
-                                <button
-                                    onClick={() => setNoticeLimit(prev => prev + 10)}
-                                    className="btn"
-                                    style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}
-                                >
+                                <button onClick={() => setNoticeLimit(prev => prev + 10)} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
                                     공지사항 더보기 (현재 {noticeLimit}/{notices.length}) ▼
                                 </button>
                             )}
                         </section>
                     )}
 
-                    {(!activeCategory || activeCategory === 'RESOURCE') && (
+                    {/* 불교 자료 */}
+                    {(isAllMode || isResourceMode) && (
                         <section style={{ marginBottom: '40px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #4caf50', marginBottom: '15px', paddingBottom: '5px' }}>
-                                <h2 style={{ fontSize: '24px', margin: 0 }}>{!activeCategory ? '📖 불교 자료' : '목록'}</h2>
+                                <h2 style={{ fontSize: '24px', margin: 0 }}>{isAllMode ? '📖 불교 자료' : '목록'}</h2>
                                 <Link href="/board/new?cat=RESOURCE" style={{ textDecoration: 'none', color: '#4caf50', fontWeight: 'bold' }}>[글쓰기]</Link>
                             </div>
-                            {resources.length > 0 ? (
-                                resources.slice(0, resourceLimit).map(post => renderPost(post, false))
-                            ) : (
-                                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>등록된 자료가 없습니다.</p>
-                            )}
-
+                            {resources.length > 0 ? resources.slice(0, resourceLimit).map(post => renderPost(post, false)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>등록된 자료가 없습니다.</p>}
                             {resources.length > resourceLimit && (
-                                <button
-                                    onClick={() => setResourceLimit(prev => prev + 10)}
-                                    className="btn"
-                                    style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}
-                                >
+                                <button onClick={() => setResourceLimit(prev => prev + 10)} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
                                     자료 더보기 (현재 {resourceLimit}/{resources.length}) ▼
                                 </button>
                             )}
                         </section>
                     )}
 
-                    {(!activeCategory || activeCategory === 'FREE') && (
+                    {/* 자유게시판 */}
+                    {(isAllMode || isFreeMode) && (
                         <section style={{ marginBottom: '40px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #2196f3', marginBottom: '15px', paddingBottom: '5px' }}>
-                                <h2 style={{ fontSize: '24px', margin: 0 }}>{!activeCategory ? '💬 자유게시판' : '목록'}</h2>
+                                <h2 style={{ fontSize: '24px', margin: 0 }}>{isAllMode ? '💬 자유게시판' : '목록'}</h2>
                                 <Link href="/board/new?cat=FREE" style={{ textDecoration: 'none', color: '#2196f3', fontWeight: 'bold' }}>[글쓰기]</Link>
                             </div>
-                            {freePosts.length > 0 ? (
-                                freePosts.slice(0, freeLimit).map(post => renderPost(post, false))
-                            ) : (
-                                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>등록된 게시글이 없습니다.</p>
-                            )}
-
+                            {freePosts.length > 0 ? freePosts.slice(0, freeLimit).map(post => renderPost(post, false)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>등록된 게시글이 없습니다.</p>}
                             {freePosts.length > freeLimit && (
-                                <button
-                                    onClick={() => setFreeLimit(prev => prev + 10)}
-                                    className="btn"
-                                    style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}
-                                >
+                                <button onClick={() => setFreeLimit(prev => prev + 10)} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
                                     게시글 더보기 (현재 {freeLimit}/{freePosts.length}) ▼
                                 </button>
                             )}
@@ -269,7 +221,7 @@ function BoardContent() {
                 </div>
             )}
 
-            {!activeCategory && (
+            {isAllMode && (
                 <div style={{ position: 'sticky', bottom: '20px', display: 'flex', justifyContent: 'center' }}>
                     <Link href="/board/new" className="btn btn-primary" style={{ boxShadow: '0 4px 10px rgba(0,0,0,0.2)', padding: '15px 30px', fontSize: '20px', textDecoration: 'none' }}>
                         글쓰기 ✍️
@@ -280,6 +232,14 @@ function BoardContent() {
     );
 }
 
+function BoardSearchParamsWrapper() {
+    const searchParams = useSearchParams();
+    const cat = searchParams.get('cat') as PostCategory | null;
+
+    // key를 cat으로 설정하여 파라미터가 바뀔 때마다 컴포넌트를 새로 그림
+    return <BoardContent key={cat || 'all'} activeCategory={cat} />;
+}
+
 export default function BoardPage() {
     return (
         <Suspense fallback={
@@ -287,7 +247,7 @@ export default function BoardPage() {
                 <p style={{ color: 'var(--text-secondary)' }}>화면을 준비 중입니다...</p>
             </div>
         }>
-            <BoardContent />
+            <BoardSearchParamsWrapper />
         </Suspense>
     );
 }
