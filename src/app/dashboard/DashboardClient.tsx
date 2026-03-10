@@ -26,7 +26,7 @@ export default function DashboardClient({
 }: DashboardClientProps) {
 
     const [user] = useState<any>(initialUser);
-    const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails);
+    const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails || undefined);
     const [isSubscribed, setIsSubscribed] = useState<boolean | 'loading'>('loading');
     const router = useRouter();
 
@@ -162,7 +162,7 @@ export default function DashboardClient({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <h2 style={{ fontSize: '22px', color: 'var(--accent-primary)', margin: 0 }}>🔔 최근 공지사항</h2>
-                        {unreadDetails?.notices > 0 && (
+                        {unreadDetails && unreadDetails.notices > 0 && (
                             <span style={{ backgroundColor: 'red', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '14px', fontWeight: 'bold' }}>
                                 {unreadDetails.notices}
                             </span>
@@ -191,7 +191,7 @@ export default function DashboardClient({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <h2 style={{ fontSize: '20px', color: '#4caf50', margin: 0 }}>📖 최근 불교 자료</h2>
-                        {unreadDetails?.resources > 0 && (
+                        {unreadDetails && unreadDetails.resources > 0 && (
                             <span style={{ backgroundColor: '#4caf50', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '14px', fontWeight: 'bold' }}>
                                 {unreadDetails.resources}
                             </span>
@@ -222,7 +222,7 @@ export default function DashboardClient({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <h2 style={{ fontSize: '20px', color: '#2196f3', margin: 0 }}>💬 최근 자유 게시글</h2>
-                        {unreadDetails?.frees > 0 && (
+                        {unreadDetails && unreadDetails.frees > 0 && (
                             <span style={{ backgroundColor: '#2196f3', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '14px', fontWeight: 'bold' }}>
                                 {unreadDetails.frees}
                             </span>
@@ -255,7 +255,7 @@ export default function DashboardClient({
 
                 <Link href="/chat" className="btn btn-secondary" style={{ textDecoration: 'none', padding: '20px', fontSize: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
                     💬 따뜻한 대화 (채팅)
-                    {unreadDetails?.messages > 0 && (
+                    {unreadDetails && unreadDetails.messages > 0 && (
                         <span style={{ backgroundColor: 'red', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '14px', fontWeight: 'bold' }}>
                             {unreadDetails.messages}
                         </span>
