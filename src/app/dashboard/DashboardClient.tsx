@@ -14,6 +14,7 @@ interface DashboardClientProps {
     initialResources?: any[];
     initialFrees?: any[];
     initialUnreadDetails?: any;
+    initialPushStatus?: boolean;
     vapidPublicKey: string;
 }
 
@@ -23,6 +24,7 @@ export default function DashboardClient({
     initialResources,
     initialFrees,
     initialUnreadDetails,
+    initialPushStatus,
     vapidPublicKey
 }: DashboardClientProps) {
 
@@ -31,7 +33,9 @@ export default function DashboardClient({
     const [notices, setNotices] = useState<any[] | null>(initialNotices || null);
     const [resources, setResources] = useState<any[] | null>(initialResources || null);
     const [frees, setFrees] = useState<any[] | null>(initialFrees || null);
-    const [isSubscribed, setIsSubscribed] = useState<boolean | 'loading'>('loading');
+    const [isSubscribed, setIsSubscribed] = useState<boolean | 'loading'>(
+        initialPushStatus !== undefined ? initialPushStatus : 'loading'
+    );
     const router = useRouter();
 
     const fetchUnread = async () => {
@@ -70,8 +74,8 @@ export default function DashboardClient({
             localStorage.setItem('user', JSON.stringify(initialUser));
         }
 
-        fetchUnread();
-        fetchPosts();
+        // 서버에서 초기 데이터를 가져왔으므로 초기 fetchUnread, fetchPosts는 호출하지 않음
+
         const interval = setInterval(() => {
             fetchUnread();
             fetchPosts();
@@ -200,7 +204,9 @@ export default function DashboardClient({
                     <div>
                         <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>{notices[0].title}</h3>
                         <p style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '15px' }}>
-                            {notices[0].content && notices[0].content.length > 50 ? notices[0].content.substring(0, 50) + '...' : (notices[0].content || '내용을 확인하려면 클릭하세요.')}
+                            {notices[0].content && notices[0].content.length > 50
+                                ? notices[0].content.substring(0, 50) + '...'
+                                : (notices[0].content || '내용을 확인하려면 클릭하세요.')}
                         </p>
                         <Link href="/board?cat=NOTICE" style={{ color: 'var(--accent-primary)', fontWeight: 'bold', textDecoration: 'none' }}>
                             상세 내용 보기 {'>'}

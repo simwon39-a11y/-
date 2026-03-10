@@ -17,8 +17,13 @@ export default async function DashboardPage() {
         redirect('/login');
     }
 
-    // 서버 사이드에서 데이터를 기다리지 않고 즉시 응답합니다. (데이터는 클라이언트에서 로딩)
-    // 인증 확인만 수행합니다.
+    // 서버 사이드에서 초기 데이터를 한꺼번에 가져옵니다. (병렬 처리)
+    const [unreadDetails, notices, resources, frees] = await Promise.all([
+        getUnreadCounts(user.id),
+        getPostsByCategoryAction('NOTICE', 1),
+        getPostsByCategoryAction('RESOURCE', 1),
+        getPostsByCategoryAction('FREE', 1)
+    ]);
 
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
         process.env.VAPID_PUBLIC_KEY ||
@@ -28,10 +33,13 @@ export default async function DashboardPage() {
     return (
         <DashboardClient
             initialUser={user}
+            initialNotices={notices}
+            initialResources={resources}
+            initialFrees={frees}
+            initialUnreadDetails={unreadDetails.details}
+            initialPushStatus={unreadDetails.pushCount > 0}
             vapidPublicKey={vapidPublicKey}
         />
     );
-
-
 }
 

@@ -38,7 +38,13 @@ export async function getPostDetailAction(id: number) {
         where: { id },
         include: {
             images: true,
-            author: true,
+            author: {
+                select: {
+                    name: true,
+                    buddhistName: true,
+                    temple: true
+                }
+            },
             comments: {
                 include: { author: true },
                 orderBy: { createdAt: 'asc' }
