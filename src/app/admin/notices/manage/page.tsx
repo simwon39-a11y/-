@@ -23,7 +23,7 @@ export default function AdminNoticeManage() {
     }, [router, category]);
 
     async function loadPosts() {
-        const data = await getPostsByCategoryAction(category as any);
+        const data = await getPostsByCategoryAction(category as any, 50);
         setPosts(data);
     }
 

@@ -30,9 +30,9 @@ export default function BoardPage() {
 
         async function loadAllPosts() {
             const [nData, rData, fData] = await Promise.all([
-                getPostsByCategoryAction('NOTICE'),
-                getPostsByCategoryAction('RESOURCE'),
-                getPostsByCategoryAction('FREE')
+                getPostsByCategoryAction('NOTICE', 30),
+                getPostsByCategoryAction('RESOURCE', 30),
+                getPostsByCategoryAction('FREE', 30)
             ]);
             setNotices(nData);
             setResources(rData);

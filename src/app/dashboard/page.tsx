@@ -17,12 +17,12 @@ export default async function DashboardPage() {
         redirect('/login');
     }
 
-    // 서버 사이드에서 최신 데이터들을 미리 가져옵니다.
+    // 서버 사이드에서 최신 데이터들을 미리 가져옵니다. (각 1개씩만)
     const [[notices, resources, frees], unreadData] = await Promise.all([
         Promise.all([
-            getPostsByCategoryAction('NOTICE'),
-            getPostsByCategoryAction('RESOURCE'),
-            getPostsByCategoryAction('FREE')
+            getPostsByCategoryAction('NOTICE', 1),
+            getPostsByCategoryAction('RESOURCE', 1),
+            getPostsByCategoryAction('FREE', 1)
         ]),
         getUnreadCounts(user.id)
     ]);
