@@ -17,12 +17,8 @@ export default async function DashboardPage() {
         redirect('/login');
     }
 
-    // 서버 사이드에서 최신 데이터들을 최소한으로 가져옵니다. (상세 서술 및 댓글 제외)
-    const [notices, resources, frees] = await Promise.all([
-        getPostsByCategoryAction('NOTICE', 1, false),
-        getPostsByCategoryAction('RESOURCE', 1, false),
-        getPostsByCategoryAction('FREE', 1, false)
-    ]);
+    // 서버 사이드에서 데이터를 기다리지 않고 즉시 응답합니다. (데이터는 클라이언트에서 로딩)
+    // 인증 확인만 수행합니다.
 
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
         process.env.VAPID_PUBLIC_KEY ||
@@ -32,10 +28,6 @@ export default async function DashboardPage() {
     return (
         <DashboardClient
             initialUser={user}
-            initialNotices={notices}
-            initialResources={resources}
-            initialFrees={frees}
-            initialUnreadDetails={null}
             vapidPublicKey={vapidPublicKey}
         />
     );

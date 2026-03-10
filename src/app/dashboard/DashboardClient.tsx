@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation';
 import PushSubscriptionHandler from '@/components/PushSubscriptionHandler';
 import InstallPWA from '@/components/InstallPWA';
 import { refreshAppBadge } from '@/lib/badgeClient';
+import { getPostsByCategoryAction } from '@/app/board/actions';
 
 interface DashboardClientProps {
     initialUser: any;
-    initialNotices: any[];
-    initialResources: any[];
-    initialFrees: any[];
+    initialNotices?: any[];
+    initialResources?: any[];
+    initialFrees?: any[];
     initialUnreadDetails?: any;
     vapidPublicKey: string;
 }
@@ -27,6 +28,9 @@ export default function DashboardClient({
 
     const [user] = useState<any>(initialUser);
     const [unreadDetails, setUnreadDetails] = useState<any>(initialUnreadDetails || undefined);
+    const [notices, setNotices] = useState<any[] | null>(initialNotices || null);
+    const [resources, setResources] = useState<any[] | null>(initialResources || null);
+    const [frees, setFrees] = useState<any[] | null>(initialFrees || null);
     const [isSubscribed, setIsSubscribed] = useState<boolean | 'loading'>('loading');
     const router = useRouter();
 
@@ -39,12 +43,25 @@ export default function DashboardClient({
                 if (data.pushCount !== undefined) {
                     setIsSubscribed(data.pushCount > 0);
                 }
-
-                // 실시간 배지 업데이트
                 await refreshAppBadge();
             }
         } catch (err) {
             console.error('Fetch unread error:', err);
+        }
+    };
+
+    const fetchPosts = async () => {
+        try {
+            const [n, r, f] = await Promise.all([
+                getPostsByCategoryAction('NOTICE', 1, false),
+                getPostsByCategoryAction('RESOURCE', 1, false),
+                getPostsByCategoryAction('FREE', 1, false)
+            ]);
+            setNotices(n);
+            setResources(r);
+            setFrees(f);
+        } catch (err) {
+            console.error('Fetch posts error:', err);
         }
     };
 
@@ -54,7 +71,11 @@ export default function DashboardClient({
         }
 
         fetchUnread();
-        const interval = setInterval(fetchUnread, 30000);
+        fetchPosts();
+        const interval = setInterval(() => {
+            fetchUnread();
+            fetchPosts();
+        }, 30000);
         window.addEventListener('focus', fetchUnread);
 
         return () => {
@@ -140,8 +161,6 @@ export default function DashboardClient({
                     버전: 26.03.09.2470
                 </div>
 
-
-
                 {isSubscribed === false && (
                     <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#fff9c4', borderRadius: '12px', border: '1px solid #fbc02d', textAlign: 'left' }}>
                         <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#f57f17', fontWeight: 'bold' }}>
@@ -171,11 +190,17 @@ export default function DashboardClient({
                     <Link href="/board" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
                 </div>
 
-                {initialNotices.length > 0 ? (
+                {notices === null ? (
+                    <div style={{ animation: 'pulse 1.5s infinite' }}>
+                        <div style={{ height: '24px', background: '#f0f0f0', borderRadius: '4px', width: '80%', marginBottom: '10px' }}></div>
+                        <div style={{ height: '18px', background: '#f5f5f5', borderRadius: '4px', width: '100%', marginBottom: '5px' }}></div>
+                        <div style={{ height: '18px', background: '#f5f5f5', borderRadius: '4px', width: '60%' }}></div>
+                    </div>
+                ) : notices.length > 0 ? (
                     <div>
-                        <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>{initialNotices[0].title}</h3>
+                        <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>{notices[0].title}</h3>
                         <p style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '15px' }}>
-                            {initialNotices[0].content.length > 50 ? initialNotices[0].content.substring(0, 50) + '...' : initialNotices[0].content}
+                            {notices[0].content.length > 50 ? notices[0].content.substring(0, 50) + '...' : notices[0].content}
                         </p>
                         <Link href="/board" style={{ color: 'var(--accent-primary)', fontWeight: 'bold', textDecoration: 'none' }}>
                             상세 내용 보기 {'>'}
@@ -203,13 +228,18 @@ export default function DashboardClient({
                     </div>
                 </div>
 
-                {initialResources.length > 0 ? (
+                {resources === null ? (
+                    <div style={{ animation: 'pulse 1.5s infinite' }}>
+                        <div style={{ height: '20px', background: '#f0f0f0', borderRadius: '4px', width: '70%', marginBottom: '8px' }}></div>
+                        <div style={{ height: '14px', background: '#f5f5f5', borderRadius: '4px', width: '40%' }}></div>
+                    </div>
+                ) : resources.length > 0 ? (
                     <div>
                         <Link href="/board" style={{ textDecoration: 'none', color: 'inherit' }}>
-                            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>{initialResources[0].title}</h3>
+                            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>{resources[0].title}</h3>
                         </Link>
                         <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                            {initialResources[0].author?.buddhistName ? `${initialResources[0].author.buddhistName} ` : ''}{initialResources[0].author?.name || '익명'} · {new Date(initialResources[0].createdAt).toLocaleDateString()}
+                            {resources[0].author?.buddhistName ? `${resources[0].author.buddhistName} ` : ''}{resources[0].author?.name || '익명'} · {new Date(resources[0].createdAt).toLocaleDateString()}
                         </div>
                     </div>
                 ) : (
@@ -234,13 +264,18 @@ export default function DashboardClient({
                     </div>
                 </div>
 
-                {initialFrees.length > 0 ? (
+                {frees === null ? (
+                    <div style={{ animation: 'pulse 1.5s infinite' }}>
+                        <div style={{ height: '20px', background: '#f0f0f0', borderRadius: '4px', width: '70%', marginBottom: '8px' }}></div>
+                        <div style={{ height: '14px', background: '#f5f5f5', borderRadius: '4px', width: '40%' }}></div>
+                    </div>
+                ) : frees.length > 0 ? (
                     <div>
                         <Link href="/board" style={{ textDecoration: 'none', color: 'inherit' }}>
-                            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>{initialFrees[0].title}</h3>
+                            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>{frees[0].title}</h3>
                         </Link>
                         <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                            {initialFrees[0].author?.buddhistName ? `${initialFrees[0].author.buddhistName} ` : ''}{initialFrees[0].author?.name || '익명'} · {new Date(initialFrees[0].createdAt).toLocaleDateString()}
+                            {frees[0].author?.buddhistName ? `${frees[0].author.buddhistName} ` : ''}{frees[0].author?.name || '익명'} · {new Date(frees[0].createdAt).toLocaleDateString()}
                         </div>
                     </div>
                 ) : (
@@ -266,6 +301,15 @@ export default function DashboardClient({
                     로그아웃
                 </button>
             </div>
-        </main >
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes pulse {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                    100% { opacity: 1; }
+                }
+            `}} />
+        </main>
     );
 }
