@@ -278,27 +278,6 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
     );
 }
 
-{
-    previewImage && (
-        <div onClick={() => setPreviewImage(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'zoom-out' }}>
-            <img src={previewImage} style={{ maxWidth: '95%', maxHeight: '95%', borderRadius: '8px' }} />
-        </div>
-    )
-}
-
-{
-    isAllMode && (
-        <div style={{ position: 'sticky', bottom: '20px', display: 'flex', justifyContent: 'center' }}>
-            <Link href="/board/new" className="btn btn-primary" style={{ boxShadow: '0 4px 10px rgba(0,0,0,0.2)', padding: '15px 30px', fontSize: '20px', textDecoration: 'none' }}>
-                글쓰기 ✍️
-            </Link>
-        </div>
-    )
-}
-        </main >
-    );
-}
-
 function BoardSearchParamsWrapper() {
     const searchParams = useSearchParams();
     const cat = searchParams.get('cat') as PostCategory | null;
