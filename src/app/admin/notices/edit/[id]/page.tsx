@@ -52,7 +52,7 @@ export default function AdminNoticeEdit({ params }: { params: Promise<{ id: stri
         <AdminGuard>
             <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
                 <header style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h1 style={{ color: 'var(--accent-primary)' }}>공지사항 수정</h1>
+                    <h1 style={{ color: 'var(--accent-primary)' }}>게시물 수정</h1>
                     <Link href="/admin/notices/manage" style={{ textDecoration: 'none', color: 'var(--text-secondary)' }}>취소</Link>
                 </header>
 

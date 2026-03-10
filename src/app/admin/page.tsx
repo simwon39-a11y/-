@@ -29,14 +29,10 @@ export default function AdminHome() {
                         <Link href="/admin/upload" className="btn btn-secondary" style={{ textDecoration: 'none', textAlign: 'center', padding: '15px' }}>
                             📁 엑셀 업로드
                         </Link>
-                        <Link href="/board" className="btn btn-secondary" style={{ textDecoration: 'none', textAlign: 'center', padding: '15px' }}>
-                            📱 게시물 관리
+                        <Link href="/admin/notices/manage" className="btn btn-secondary" style={{ textDecoration: 'none', textAlign: 'center', padding: '15px' }}>
+                            📱 게시물 통합 관리
                         </Link>
                     </div>
-
-                    <Link href="/admin/notices/manage" className="btn btn-secondary" style={{ width: '100%', textDecoration: 'none', textAlign: 'center', padding: '15px', backgroundColor: '#f8f9fa' }}>
-                        📢 공지사항 및 게시물 관리 (수정/삭제)
-                    </Link>
                 </div>
             </section>
 
