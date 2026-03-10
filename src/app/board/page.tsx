@@ -75,6 +75,26 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
         loadFilteredPosts();
     }, [activeCategory]);
 
+    const loadMorePosts = async (category: PostCategory) => {
+        const currentList = category === 'NOTICE' ? notices : category === 'RESOURCE' ? resources : freePosts;
+        const setList = category === 'NOTICE' ? setNotices : category === 'RESOURCE' ? setResources : setFreePosts;
+        const limit = category === 'NOTICE' ? noticeLimit : category === 'RESOURCE' ? resourceLimit : freeLimit;
+
+        setIsLoading(true);
+        try {
+            const newData = await getPostsByCategoryAction(category as any, 10, currentList.length);
+            setList(prev => [...prev, ...newData]);
+
+            if (category === 'NOTICE') setNoticeLimit(prev => prev + 10);
+            else if (category === 'RESOURCE') setResourceLimit(prev => prev + 10);
+            else if (category === 'FREE') setFreeLimit(prev => prev + 10);
+        } catch (error) {
+            console.error(`Load more ${category} error:`, error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const updatePostInLists = (postId: number, detailedData: any) => {
         const updateList = (list: any[]) => list.map(p => p.id === postId ? { ...p, ...detailedData } : p);
         setNotices(prev => updateList(prev));
@@ -216,10 +236,10 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                     {(isAllMode || isNoticeMode) && (
                         <section style={{ marginBottom: '40px' }}>
                             {isAllMode && <h2 style={{ fontSize: '24px', borderBottom: '2px solid var(--accent-primary)', paddingBottom: '5px', marginBottom: '15px' }}>📢 공지사항</h2>}
-                            {notices.length > 0 ? notices.slice(0, noticeLimit).map(post => renderPost(post, isNoticeMode)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>공지사항이 없습니다.</p>}
-                            {notices.length > noticeLimit && (
-                                <button onClick={() => setNoticeLimit(prev => prev + 10)} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
-                                    공지사항 더보기 (현재 {noticeLimit}/{notices.length}) ▼
+                            {notices.length > 0 ? notices.map(post => renderPost(post, isNoticeMode)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>공지사항이 없습니다.</p>}
+                            {notices.length >= noticeLimit && (
+                                <button onClick={() => loadMorePosts('NOTICE')} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
+                                    공지사항 더보기 ▼
                                 </button>
                             )}
                         </section>
@@ -232,10 +252,10 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                                 <h2 style={{ fontSize: '24px', margin: 0 }}>{isAllMode ? '📖 불교 자료' : '목록'}</h2>
                                 <Link href="/board/new?cat=RESOURCE" style={{ textDecoration: 'none', color: '#4caf50', fontWeight: 'bold' }}>[글쓰기]</Link>
                             </div>
-                            {resources.length > 0 ? resources.slice(0, resourceLimit).map(post => renderPost(post, false)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>등록된 자료가 없습니다.</p>}
-                            {resources.length > resourceLimit && (
-                                <button onClick={() => setResourceLimit(prev => prev + 10)} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
-                                    자료 더보기 (현재 {resourceLimit}/{resources.length}) ▼
+                            {resources.length > 0 ? resources.map(post => renderPost(post, false)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>등록된 자료가 없습니다.</p>}
+                            {resources.length >= resourceLimit && (
+                                <button onClick={() => loadMorePosts('RESOURCE')} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
+                                    자료 더보기 ▼
                                 </button>
                             )}
                         </section>
@@ -248,10 +268,10 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                                 <h2 style={{ fontSize: '24px', margin: 0 }}>{isAllMode ? '💬 자유게시판' : '목록'}</h2>
                                 <Link href="/board/new?cat=FREE" style={{ textDecoration: 'none', color: '#2196f3', fontWeight: 'bold' }}>[글쓰기]</Link>
                             </div>
-                            {freePosts.length > 0 ? freePosts.slice(0, freeLimit).map(post => renderPost(post, false)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>등록된 게시글이 없습니다.</p>}
-                            {freePosts.length > freeLimit && (
-                                <button onClick={() => setFreeLimit(prev => prev + 10)} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
-                                    게시글 더보기 (현재 {freeLimit}/{freePosts.length}) ▼
+                            {freePosts.length > 0 ? freePosts.map(post => renderPost(post, false)) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px' }}>등록된 게시글이 없습니다.</p>}
+                            {freePosts.length >= freeLimit && (
+                                <button onClick={() => loadMorePosts('FREE')} className="btn" style={{ width: '100%', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #ddd', marginTop: '10px' }}>
+                                    게시글 더보기 ▼
                                 </button>
                             )}
                         </section>

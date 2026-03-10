@@ -9,10 +9,11 @@ import { sendGlobalPushNotification } from '@/lib/push';
 /**
  * 특정 카테고리의 모든 게시물을 가져옵니다. (최소 정보만: ID, 제목, 카테고리, 작성자, 날짜)
  */
-export async function getPostsByCategoryAction(category: PostCategory, limit: number = 15) {
+export async function getPostsByCategoryAction(category: PostCategory, limit: number = 15, skip: number = 0) {
     return await db.post.findMany({
         where: { category },
         take: limit,
+        skip: skip,
         select: {
             id: true,
             title: true,
