@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getPostsByCategoryAction, getPostDetailAction, createCommentAction } from './actions';
 type PostCategory = 'NOTICE' | 'RESOURCE' | 'FREE';
-import { trackBoardViewAction } from '@/app/api/unread/actions';
+import { trackMultipleBoardViewsAction } from '@/app/api/unread/actions';
 import { refreshAppBadge } from '@/lib/badgeClient';
 
 
@@ -50,8 +50,8 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                         setNotices([]);
                         setResources([]);
                     }
-                    // 비차단식(Background) 업데이트
-                    trackBoardViewAction(activeCategory as any);
+                    // 비차단식(Background) 업데이트 - 단일 요청으로 통합
+                    trackMultipleBoardViewsAction([activeCategory as any]);
                 } else {
                     const [nData, rData, fData] = await Promise.all([
                         getPostsByCategoryAction('NOTICE', 15),
@@ -62,9 +62,7 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                     setResources(rData);
                     setFreePosts(fData);
 
-                    trackBoardViewAction('NOTICE');
-                    trackBoardViewAction('RESOURCE');
-                    trackBoardViewAction('FREE');
+                    trackMultipleBoardViewsAction(['NOTICE', 'RESOURCE', 'FREE']);
                 }
                 refreshAppBadge();
             } catch (error) {

@@ -53,9 +53,9 @@ export default function DashboardClient({
     const fetchPosts = async () => {
         try {
             const [n, r, f] = await Promise.all([
-                getPostsByCategoryAction('NOTICE', 1, false),
-                getPostsByCategoryAction('RESOURCE', 1, false),
-                getPostsByCategoryAction('FREE', 1, false)
+                getPostsByCategoryAction('NOTICE', 1),
+                getPostsByCategoryAction('RESOURCE', 1),
+                getPostsByCategoryAction('FREE', 1)
             ]);
             setNotices(n);
             setResources(r);
