@@ -187,7 +187,7 @@ export default function DashboardClient({
                             </span>
                         )}
                     </div>
-                    <Link href="/board" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
+                    <Link href="/board?cat=NOTICE" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
                 </div>
 
                 {notices === null ? (
@@ -202,7 +202,7 @@ export default function DashboardClient({
                         <p style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '15px' }}>
                             {notices[0].content.length > 50 ? notices[0].content.substring(0, 50) + '...' : notices[0].content}
                         </p>
-                        <Link href="/board" style={{ color: 'var(--accent-primary)', fontWeight: 'bold', textDecoration: 'none' }}>
+                        <Link href="/board?cat=NOTICE" style={{ color: 'var(--accent-primary)', fontWeight: 'bold', textDecoration: 'none' }}>
                             상세 내용 보기 {'>'}
                         </Link>
                     </div>
@@ -224,7 +224,7 @@ export default function DashboardClient({
                     </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <Link href="/board/new?cat=RESOURCE" style={{ fontSize: '14px', color: '#4caf50', fontWeight: 'bold', textDecoration: 'none' }}>[글쓰기]</Link>
-                        <Link href="/board" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
+                        <Link href="/board?cat=RESOURCE" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
                     </div>
                 </div>
 
@@ -235,7 +235,7 @@ export default function DashboardClient({
                     </div>
                 ) : resources.length > 0 ? (
                     <div>
-                        <Link href="/board" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Link href="/board?cat=RESOURCE" style={{ textDecoration: 'none', color: 'inherit' }}>
                             <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>{resources[0].title}</h3>
                         </Link>
                         <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
@@ -260,7 +260,7 @@ export default function DashboardClient({
                     </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <Link href="/board/new?cat=FREE" style={{ fontSize: '14px', color: '#2196f3', fontWeight: 'bold', textDecoration: 'none' }}>[글쓰기]</Link>
-                        <Link href="/board" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
+                        <Link href="/board?cat=FREE" style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none' }}>전체보기 {'>'}</Link>
                     </div>
                 </div>
 
@@ -271,7 +271,7 @@ export default function DashboardClient({
                     </div>
                 ) : frees.length > 0 ? (
                     <div>
-                        <Link href="/board" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Link href="/board?cat=FREE" style={{ textDecoration: 'none', color: 'inherit' }}>
                             <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>{frees[0].title}</h3>
                         </Link>
                         <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
