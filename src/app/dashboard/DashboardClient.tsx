@@ -162,7 +162,7 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.11.2290 (최신)
+                    버전: 26.03.11.2300 (최신)
                 </div>
 
                 {isSubscribed === false && (
@@ -335,9 +335,26 @@ export default function DashboardClient({
                             const res = await sendTestPushAction();
                             alert(res?.message || '테스트 요청 보냄');
                         }}
-                        style={{ flex: 1, padding: '8px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#e3f2fd', border: '1px solid #2196f3', color: '#1976d2' }}
+                        style={{ flex: 1, padding: '8px', fontSize: '11px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#e3f2fd', border: '1px solid #2196f3', color: '#1976d2' }}
                     >
-                        📲 테스트 알림 & 배지 발송
+                        📲 배경 테스트(7)
+                    </button>
+                    <button
+                        onClick={async () => {
+                            if ('setAppBadge' in navigator) {
+                                try {
+                                    await (navigator as any).setAppBadge(99);
+                                    alert('아이콘에 숫자 99를 직접 요청했습니다! 바탕화면으로 나가서 확인해 보세요.');
+                                } catch (e) {
+                                    alert('배지 설정 실패: ' + e);
+                                }
+                            } else {
+                                alert('이 브라우저는 배지 기능을 지원하지 않습니다.');
+                            }
+                        }}
+                        style={{ flex: 1, padding: '8px', fontSize: '11px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#f3e5f5', border: '1px solid #9c27b0', color: '#7b1fa2' }}
+                    >
+                        ⚡ 즉시 테스트(99)
                     </button>
                 </div>
                 <p style={{ margin: '10px 0 0 0', fontSize: '11px', color: '#999' }}>
