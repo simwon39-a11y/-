@@ -376,6 +376,25 @@ export default function DashboardClient({
                     ※ <b>알림창에는 숫자가 뜨는데 아이콘에만 안 뜬다면?</b><br />
                     삼성폰 설정: <b>[설정 &gt; 알림 &gt; 고급 설정 &gt; 앱 아이콘 배지]</b>를 반드시 '켜기' 및 '숫자'로 설정해 주세요.
                 </p>
+                <div style={{ marginTop: '10px' }}>
+                    <button
+                        onClick={async () => {
+                            if (confirm('전체 초기화를 진행하시겠습니까? (설치된 앱과 모든 설정이 삭제됩니다)')) {
+                                if ('serviceWorker' in navigator) {
+                                    const regs = await navigator.serviceWorker.getRegistrations();
+                                    for (const reg of regs) await reg.unregister();
+                                }
+                                localStorage.clear();
+                                document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                                alert('초기화 완료! 이제 앱을 종료하고 바탕화면 아이콘을 삭제한 뒤 처음부터 다시 설치해 주세요.');
+                                window.location.reload();
+                            }
+                        }}
+                        style={{ width: '100%', padding: '10px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#ffebee', border: '1px solid #ef5350', color: '#c62828' }}
+                    >
+                        🗑️ 전체 강제 초기화 (재설치 필수)
+                    </button>
+                </div>
             </div>
 
             <style dangerouslySetInnerHTML={{
