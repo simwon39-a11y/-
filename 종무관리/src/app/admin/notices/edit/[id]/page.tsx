@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getPostByIdAction, updatePostAction } from '@/app/board/actions';
+import { getPostDetailAction, updatePostAction } from '@/app/board/actions';
 import AdminGuard from '@/components/AdminGuard';
 
 export default function AdminNoticeEdit({ params }: { params: Promise<{ id: string }> }) {
@@ -24,7 +24,7 @@ export default function AdminNoticeEdit({ params }: { params: Promise<{ id: stri
 
         async function loadNotice() {
             if (isLoaded) return;
-            const found = await getPostByIdAction(Number(id));
+            const found = await getPostDetailAction(Number(id));
             if (found) {
                 setTitle(found.title);
                 setContent(found.content);
