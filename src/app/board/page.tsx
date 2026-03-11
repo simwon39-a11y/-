@@ -62,7 +62,7 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                     setResources(rData);
                     setFreePosts(fData);
 
-                    await trackMultipleBoardViewsAction(['NOTICE', 'RESOURCE', 'FREE']);
+                    // 메인 게시판 진입 시에는 자동으로 읽음 처리하지 않음 (사용자성 개선)
                 }
                 // 읽음 처리가 완벽히 끝난 후 배지 갱신
                 await refreshAppBadge();

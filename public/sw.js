@@ -1,4 +1,4 @@
-// Version: 26.03.11.2010
+// Version: 26.03.11.2140
 
 self.addEventListener('push', function (event) {
     const data = event.data.json();

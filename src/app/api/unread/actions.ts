@@ -10,17 +10,26 @@ export async function trackMultipleBoardViewsAction(categories: ('NOTICE' | 'RES
     const user = await getServerUser();
     if (!user || categories.length === 0) return { success: false };
 
-    const data: any = {};
-    if (categories.includes('NOTICE')) data.lastNoticeViewAt = new Date();
-    if (categories.includes('RESOURCE')) data.lastResourceViewAt = new Date();
-    if (categories.includes('FREE')) data.lastFreeViewAt = new Date();
+    try {
+        const { supabase } = await import('@/lib/supabase');
+        const data: any = {};
+        const now = new Date().toISOString();
 
-    await db.user.update({
-        where: { id: user.id },
-        data
-    });
+        if (categories.includes('NOTICE')) data.lastNoticeViewAt = now;
+        if (categories.includes('RESOURCE')) data.lastResourceViewAt = now;
+        if (categories.includes('FREE')) data.lastFreeViewAt = now;
 
-    return { success: true };
+        const { error } = await supabase
+            .from('User')
+            .update(data)
+            .eq('id', user.id);
+
+        if (error) throw error;
+        return { success: true };
+    } catch (err) {
+        console.error('Track board view error:', err);
+        return { success: false };
+    }
 }
 
 /**
