@@ -121,7 +121,7 @@ export default function InstallPWA() {
                     animation: 'fadeIn 0.3s'
                 }}>
                     <h3 style={{ fontSize: '18px', color: '#B8860B', marginBottom: '15px' }}>
-                        {isKakaotalk ? '✅ 설치 2단계 안내' : (isIOS ? '2️⃣ 설치 2단계: 아이폰 수동 설치' : '2️⃣ 설치 2단계: 안드로이드 수동 설치')}
+                        {isKakaotalk ? '✅ 설치 2단계 안내' : (isIOS ? '2️⃣ 설치 2단계: 아이폰 수동 설치' : '2️⃣ 수동 설치 단계')}
                     </h3>
 
                     {isKakaotalk ? (
@@ -144,9 +144,9 @@ export default function InstallPWA() {
                         </ol>
                     ) : (
                         <ol style={{ paddingLeft: '20px', lineHeight: '1.8', fontSize: '16px' }}>
-                            <li>상단 혹은 하단의 <b>[점 3개(⋮)]</b> 또는 <b>[선 3개(≡)]</b> 메뉴를 누릅니다.</li>
-                            <li><b>[앱 설치]</b> 또는 <b>[홈 화면에 추가]</b> 메뉴를 찾아서 누릅니다.</li>
-                            <li>팝업창이 뜨면 <b>[설치]</b> 또는 <b>[추가]</b>를 누르세요.</li>
+                            <li>1. 우측 상단의 <b>[점 3개(⋮)]</b> 누름</li>
+                            <li>2. <b>[홈 화면에 추가]</b> 를 찾아 선택</li>
+                            <li>3. 팝업창이 뜨면 <b>[추가]</b> 또는 <b>[설치]</b>를 누르세요.</li>
                             <li>4️⃣ 바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
                         </ol>
                     )}
