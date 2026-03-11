@@ -174,7 +174,7 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.12.2340 (최신)
+                    버전: 26.03.12.2350 (최신)
                 </div>
 
                 {isSubscribed === false && (
@@ -379,7 +379,7 @@ export default function DashboardClient({
                 <div style={{ marginTop: '10px' }}>
                     <button
                         onClick={async () => {
-                            if (confirm('전체 초기화를 진행하시겠습니까? (설치된 앱과 모든 설정이 삭제됩니다)')) {
+                            if (confirm('전체 초기화를 진행하시겠습니까? (서버의 중복 기기 정보와 폰의 옛날 기록을 모두 삭제하고 새로 시작합니다)')) {
                                 if ('serviceWorker' in navigator) {
                                     const regs = await navigator.serviceWorker.getRegistrations();
                                     for (const reg of regs) await reg.unregister();
@@ -388,13 +388,13 @@ export default function DashboardClient({
                                 await clearAllSubscriptionsAction();
                                 localStorage.clear();
                                 document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                                alert('초기화 완료! 이제 앱을 종료하고 바탕화면 아이콘을 삭제한 뒤 처음부터 다시 설치해 주세요.');
+                                alert('서버와 기기 초기화 완료! 이제 앱을 종료하고 바탕화면 아이콘을 삭제한 뒤, 새로고침을 여러 번 해서 2350 버전이 나오면 그때 다시 설치해 주세요.');
                                 window.location.reload();
                             }
                         }}
-                        style={{ width: '100%', padding: '10px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#ffebee', border: '1px solid #ef5350', color: '#c62828' }}
+                        style={{ width: '100%', padding: '10px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#ffebee', border: '1px solid #ef5350', color: '#c62828', fontWeight: 'bold' }}
                     >
-                        🗑️ 전체 강제 초기화 (재설치 필수)
+                        🚨 서버+기기 초강력 초기화 (중복 제거 & 재설치)
                     </button>
                 </div>
             </div>
