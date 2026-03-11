@@ -36,6 +36,8 @@ export default function DashboardClient({
     const [isSubscribed, setIsSubscribed] = useState<boolean | 'loading'>(
         initialPushStatus !== undefined ? initialPushStatus : 'loading'
     );
+    const [badgeStatus, setBadgeStatus] = useState<string>('대기 중');
+    const [lastBadgeValue, setLastBadgeValue] = useState<number>(0);
     const router = useRouter();
 
     const fetchUnread = async () => {
@@ -46,6 +48,16 @@ export default function DashboardClient({
                 setUnreadDetails(data.details);
                 if (data.pushCount !== undefined) {
                     setIsSubscribed(data.pushCount > 0);
+                }
+                const count = data.totalUnread || 0;
+                setLastBadgeValue(count);
+                if ('setAppBadge' in navigator) {
+                    try {
+                        await (navigator as any).setAppBadge(count);
+                        setBadgeStatus(`성공 (${new Date().toLocaleTimeString()})`);
+                    } catch (e) {
+                        setBadgeStatus(`오류: ${e}`);
+                    }
                 }
                 await refreshAppBadge();
             }
@@ -162,7 +174,7 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.11.2300 (최신)
+                    버전: 26.03.12.2310 (최신)
                 </div>
 
                 {isSubscribed === false && (
@@ -315,8 +327,11 @@ export default function DashboardClient({
                     <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', flex: 1, minWidth: '140px' }}>
                         <b>논리적 읽지 않음:</b> {unreadDetails?.totalUnread ?? 0}개
                     </div>
-                    <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', flex: 1, minWidth: '140px' }}>
-                        <b>배지 API 지원:</b> {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? '✅ 지원됨' : '❌ 미지원'}
+                    <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '12px', flex: 1, minWidth: '140px' }}>
+                        <b>배지 전송 값:</b> {lastBadgeValue}개
+                    </div>
+                    <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '12px', flex: 1, minWidth: '140px' }}>
+                        <b>전송 상태:</b> {badgeStatus}
                     </div>
                 </div>
                 <div style={{ marginTop: '10px', display: 'flex', gap: '5px' }}>
