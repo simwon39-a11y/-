@@ -50,8 +50,8 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                         setNotices([]);
                         setResources([]);
                     }
-                    // 비차단식(Background) 업데이트 - 단일 요청으로 통합
-                    trackMultipleBoardViewsAction([activeCategory as any]);
+                    // 비차단식(Background) 업데이트 - 단일 요청으로 통합 (await 추가하여 레이스 컨디션 방지)
+                    await trackMultipleBoardViewsAction([activeCategory as any]);
                 } else {
                     const [nData, rData, fData] = await Promise.all([
                         getPostsByCategoryAction('NOTICE', 15),
@@ -62,9 +62,10 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                     setResources(rData);
                     setFreePosts(fData);
 
-                    trackMultipleBoardViewsAction(['NOTICE', 'RESOURCE', 'FREE']);
+                    // 메인 게시판 진입 시에는 자동으로 읽음 처리하지 않음 (사용자성 개선)
                 }
-                refreshAppBadge();
+                // 읽음 처리가 완벽히 끝난 후 배지 갱신
+                await refreshAppBadge();
             } catch (error) {
                 console.error('Load posts error:', error);
             } finally {

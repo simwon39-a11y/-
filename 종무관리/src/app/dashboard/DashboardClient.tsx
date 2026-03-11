@@ -40,7 +40,7 @@ export default function DashboardClient({
 
     const fetchUnread = async () => {
         try {
-            const res = await fetch('/api/unread');
+            const res = await fetch(`/api/unread?t=${Date.now()}`);
             if (res.ok) {
                 const data = await res.json();
                 setUnreadDetails(data.details);
@@ -79,7 +79,7 @@ export default function DashboardClient({
         const interval = setInterval(() => {
             fetchUnread();
             fetchPosts();
-        }, 30000);
+        }, 15000);
         window.addEventListener('focus', fetchUnread);
 
         return () => {
@@ -154,7 +154,7 @@ export default function DashboardClient({
     };
 
     return (
-        <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
+        <main style={{ padding: 'var(--spacing-md)', width: '100%', margin: '0' }}>
             <InstallPWA />
             {user && <PushSubscriptionHandler userId={user.id} />}
 
@@ -162,7 +162,7 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.09.2470
+                    버전: 26.03.11.2220 (최신)
                 </div>
 
                 {isSubscribed === false && (

@@ -8,7 +8,6 @@ export async function getUnreadCounts(userId: number) {
     const totalStart = performance.now();
 
     try {
-        // 1. 사용자 마지막 확인 시간 및 메시지 카운트 등을 한번에 병렬로 조회
         const [userDataRes, unreadMessagesRes, pushCountRes] = await Promise.all([
             supabase.from('User').select('lastNoticeViewAt, lastResourceViewAt, lastFreeViewAt').eq('id', userId).single(),
             supabase.from('Message').select('*', { count: 'exact', head: true }).eq('receiverId', userId).eq('isRead', false),
@@ -16,17 +15,22 @@ export async function getUnreadCounts(userId: number) {
         ]);
 
         if (userDataRes.error || !userDataRes.data) {
+            console.error('[UNREAD] User data not found for id:', userId);
             return { totalUnread: 0, details: { messages: 0, notices: 0, resources: 0, frees: 0 } };
         }
 
         const userData = userDataRes.data;
         const unreadMessages = unreadMessagesRes.count || 0;
 
-        // 2. 각 게시판 카테고리별 읽지 않은 수 조회 (병렬)
+        // DB에서 가져온 시간을 명시적으로 보장 (문자열인 경우 그대로, Date 객체인 경우 ISO로)
+        const lastN = userData.lastNoticeViewAt;
+        const lastR = userData.lastResourceViewAt;
+        const lastF = userData.lastFreeViewAt;
+
         const [noticesRes, resourcesRes, freesRes] = await Promise.all([
-            supabase.from('Post').select('*', { count: 'exact', head: true }).eq('category', 'NOTICE').gt('createdAt', userData.lastNoticeViewAt),
-            supabase.from('Post').select('*', { count: 'exact', head: true }).eq('category', 'RESOURCE').gt('createdAt', userData.lastResourceViewAt),
-            supabase.from('Post').select('*', { count: 'exact', head: true }).eq('category', 'FREE').gt('createdAt', userData.lastFreeViewAt)
+            supabase.from('Post').select('*', { count: 'exact', head: true }).eq('category', 'NOTICE').gt('createdAt', lastN),
+            supabase.from('Post').select('*', { count: 'exact', head: true }).eq('category', 'RESOURCE').gt('createdAt', lastR),
+            supabase.from('Post').select('*', { count: 'exact', head: true }).eq('category', 'FREE').gt('createdAt', lastF)
         ]);
 
         const unreadNotices = noticesRes.count || 0;
@@ -35,7 +39,7 @@ export async function getUnreadCounts(userId: number) {
 
         const totalUnread = unreadMessages + unreadNotices + unreadResources + unreadFrees;
 
-        console.log(`[PERF-SDK] getUnreadCounts TOTAL: ${Math.round(performance.now() - totalStart)}ms`);
+        console.log(`[UNREAD] User:${userId} -> Msg:${unreadMessages}, N:${unreadNotices}, R:${unreadResources}, F:${unreadFrees} (Total:${totalUnread})`);
 
         return {
             totalUnread,
@@ -48,7 +52,7 @@ export async function getUnreadCounts(userId: number) {
             }
         };
     } catch (error) {
-        console.error('[PERF ERROR-SDK] getUnreadCounts:', error);
+        console.error('[UNREAD ERROR]:', error);
         throw error;
     }
 }

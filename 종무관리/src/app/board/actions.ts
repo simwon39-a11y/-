@@ -95,43 +95,41 @@ export async function createPostAction(formData: FormData) {
     }
 
     try {
-        // 1. 게시물 정보 저장
-        const post = await db.post.create({
-            data: {
-                title,
-                content,
-                category,
-                authorId
-            }
-        });
+        const { supabase } = await import('@/lib/supabase');
+
+        // 1. 게시물 정보 저장 (Supabase SDK 직접 사용)
+        const { data: post, error: postError } = await supabase
+            .from('Post')
+            .insert([{ title, content, category, authorId }])
+            .select()
+            .single();
+
+        if (postError) throw postError;
 
         // 2. 사진이 있으면 저장
         if (files && files.length > 0) {
-            const { supabase } = await import('@/lib/supabase');
             for (const file of files) {
                 if (file.size === 0) continue;
 
                 const fileName = `${Date.now()}_${file.name}`;
-                const { data, error } = await supabase.storage
+                const { error: uploadError } = await supabase.storage
                     .from('images')
                     .upload(fileName, file);
 
-                if (error) {
-                    console.error('Supabase upload error:', error);
+                if (uploadError) {
+                    console.error('Supabase upload error:', uploadError);
                     continue;
                 }
 
-                // Public URL 가져오기 (버킷이 public으로 설정되어 있어야 함)
+                // Public URL 가져오기
                 const { data: { publicUrl } } = supabase.storage
                     .from('images')
                     .getPublicUrl(fileName);
 
-                await db.postImage.create({
-                    data: {
-                        url: publicUrl,
-                        postId: post.id
-                    }
-                });
+                // PostImage 정보 저장 (Supabase SDK 직접 사용)
+                await supabase
+                    .from('PostImage')
+                    .insert([{ url: publicUrl, postId: post.id }]);
             }
         }
 
@@ -139,24 +137,29 @@ export async function createPostAction(formData: FormData) {
         revalidatePath('/dashboard');
         revalidatePath('/admin/notices/manage');
 
-        // 새 글 알림을 모든 사용자에게 보냅니다. (작성자 제외 가능)
-        const categoryName = category === 'NOTICE' ? '공지사항' :
-            category === 'RESOURCE' ? '불교 자료' : '자유게시판';
+        // 새 글 알림
+        try {
+            const categoryName = category === 'NOTICE' ? '공지사항' :
+                category === 'RESOURCE' ? '불교 자료' : '자유게시판';
 
-        // 백그라운드에서 실행되도록 기다리지 않고 보냅니다.
-        await sendGlobalPushNotification(
-            `새로운 ${categoryName}이 등록되었습니다.`,
-            title,
-            '/board',
-            authorId
-        );
-
+            await sendGlobalPushNotification(
+                `새로운 ${categoryName}이 등록되었습니다.`,
+                title,
+                '/board',
+                authorId
+            );
+        } catch (pushError) {
+            console.error('알림 전송 중 오류(무시 가능):', pushError);
+        }
 
         return { success: true };
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('게시물 등록 중 오류:', error);
-        return { success: false, message: '등록 중 문제가 발생했습니다.' };
+        return {
+            success: false,
+            message: '등록 중 문제가 발생했습니다. (잠시 후 다시 시도해 주세요)'
+        };
     }
 }
 
@@ -167,27 +170,36 @@ export async function createCommentAction(postId: number, authorId: number, text
     if (!text) return { success: false, message: '내용을 입력해 주세요.' };
 
     try {
-        const comment = await db.comment.create({
-            data: {
-                text,
-                postId,
+        const { supabase } = await import('@/lib/supabase');
+
+        // 1. 댓글 저장 (Supabase SDK 직접 사용)
+        const { data: comment, error: commentError } = await supabase
+            .from('Comment')
+            .insert([{ text, postId, authorId }])
+            .select(`
+                *,
+                post:Post(title)
+            `)
+            .single();
+
+        if (commentError) throw commentError;
+
+        // 2. 댓글 알림
+        try {
+            await sendGlobalPushNotification(
+                `새로운 답글이 등록되었습니다.`,
+                `${(comment as any).post.title}: ${text}`,
+                '/board',
                 authorId
-            },
-            include: { post: true }
-        });
-
-        // 댓글 알림을 모든 사용자에게 보냅니다.
-        await sendGlobalPushNotification(
-            `새로운 답글이 등록되었습니다.`,
-            `${comment.post.title}: ${text}`,
-            '/board',
-            authorId
-        );
-
+            );
+        } catch (pushError) {
+            console.error('알림 전송 오류:', pushError);
+        }
 
         return { success: true };
 
     } catch (error) {
+        console.error('댓글 등록 오류:', error);
         return { success: false, message: '댓글 등록 중 오류가 발생했습니다.' };
     }
 }
@@ -197,11 +209,18 @@ export async function createCommentAction(postId: number, authorId: number, text
  */
 export async function deletePostAction(id: number) {
     try {
-        await db.post.delete({
-            where: { id }
-        });
+        const { supabase } = await import('@/lib/supabase');
+
+        const { error } = await supabase
+            .from('Post')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
         return { success: true };
     } catch (error) {
+        console.error('삭제 오류:', error);
         return { success: false, message: '삭제 중 오류가 발생했습니다.' };
     }
 }
@@ -210,13 +229,14 @@ export async function deletePostAction(id: number) {
  */
 export async function updatePostAction(id: number, title: string, content: string) {
     try {
-        await db.post.update({
-            where: { id },
-            data: {
-                title,
-                content
-            }
-        });
+        const { supabase } = await import('@/lib/supabase');
+
+        const { error } = await supabase
+            .from('Post')
+            .update({ title, content })
+            .eq('id', id);
+
+        if (error) throw error;
 
         revalidatePath('/board');
         revalidatePath('/dashboard');
