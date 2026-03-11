@@ -51,3 +51,9 @@ logs
 *.log
 
 *.zip
+
+cafe24_deploy.zip
+node_modules/
+.next/
+辆公包府/node_modules/
+辆公包府/.next/
