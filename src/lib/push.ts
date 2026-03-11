@@ -48,7 +48,7 @@ export async function sendPushNotification(userId: number, title: string, body: 
 
         return webpush.sendNotification(
             pushSubscription,
-            JSON.stringify({ title, body, url, badge: unread.totalUnread })
+            JSON.stringify({ title, body, url, badge: unread.totalUnread, badgeCount: unread.totalUnread })
         ).catch(async (err: any) => {
             if (err.statusCode === 404 || err.statusCode === 410) {
                 // 만료된 구독 정보 삭제
@@ -113,7 +113,8 @@ export async function sendGlobalPushNotification(title: string, body: string, ur
                 title,
                 body,
                 url,
-                badge: userBadgeCache[sub.userId]
+                badge: userBadgeCache[sub.userId],
+                badgeCount: userBadgeCache[sub.userId]
             })
         ).catch(async (err: any) => {
             if (err.statusCode === 404 || err.statusCode === 410) {
