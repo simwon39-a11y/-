@@ -26,7 +26,7 @@ if (vapidPublicKey && vapidPrivateKey) {
 /**
  * 특정 사용자에게 푸시 알림을 보냅니다.
  */
-export async function sendPushNotification(userId: number, title: string, body: string, url: string = '/') {
+export async function sendPushNotification(userId: number, title: string, body: string, url: string = '/', badgeOverride?: number) {
     // 사용자의 모든 구독 정보를 가져옵니다.
     const subscriptions = await (db as any).pushSubscription.findMany({
         where: { userId }
@@ -36,6 +36,7 @@ export async function sendPushNotification(userId: number, title: string, body: 
 
     // 해당 사용자의 최신 읽지 않은 수도 함께 보냅니다.
     const unread = await getUnreadCounts(userId);
+    const badgeCount = badgeOverride !== undefined ? badgeOverride : unread.totalUnread;
 
     const notifications = (subscriptions as any[]).map(sub => {
         const pushSubscription = {
@@ -48,7 +49,7 @@ export async function sendPushNotification(userId: number, title: string, body: 
 
         return webpush.sendNotification(
             pushSubscription,
-            JSON.stringify({ title, body, url, badge: unread.totalUnread, badgeCount: unread.totalUnread })
+            JSON.stringify({ title, body, url, badge: badgeCount, badgeCount: badgeCount })
         ).catch(async (err: any) => {
             if (err.statusCode === 404 || err.statusCode === 410) {
                 // 만료된 구독 정보 삭제

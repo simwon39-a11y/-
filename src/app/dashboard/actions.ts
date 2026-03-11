@@ -12,7 +12,8 @@ export async function sendTestPushAction() {
             user.id,
             '🔔 테스트 알림',
             '아이콘 숫자가 생겼는지 확인해 보세요! (테스트 배지: 7)',
-            '/dashboard'
+            '/dashboard',
+            7
         );
         if (result) {
             const errorMsg = result.lastError ? `\n(오류사유: ${result.lastError})` : '';
