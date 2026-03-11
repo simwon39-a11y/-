@@ -37,7 +37,7 @@ export default async function DashboardPage() {
             initialResources={resources}
             initialFrees={frees}
             initialUnreadDetails={unreadDetails.details}
-            initialPushStatus={unreadDetails.pushCount > 0}
+            initialPushStatus={(unreadDetails.pushCount ?? 0) > 0}
             vapidPublicKey={vapidPublicKey}
         />
     );
