@@ -6,7 +6,7 @@ export async function refreshAppBadge() {
     if (typeof window === 'undefined' || !('navigator' in window)) return;
 
     try {
-        const res = await fetch('/api/unread');
+        const res = await fetch(`/api/unread?t=${Date.now()}`);
         if (!res.ok) return;
 
         const data = await res.json();
