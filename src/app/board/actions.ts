@@ -139,24 +139,29 @@ export async function createPostAction(formData: FormData) {
         revalidatePath('/dashboard');
         revalidatePath('/admin/notices/manage');
 
-        // 새 글 알림을 모든 사용자에게 보냅니다. (작성자 제외 가능)
-        const categoryName = category === 'NOTICE' ? '공지사항' :
-            category === 'RESOURCE' ? '불교 자료' : '자유게시판';
+        // 새 글 알림을 모든 사용자에게 보냅니다. (에러가 발생해도 게시물 등록은 성공한 상태이므로 try-catch로 감쌈)
+        try {
+            const categoryName = category === 'NOTICE' ? '공지사항' :
+                category === 'RESOURCE' ? '불교 자료' : '자유게시판';
 
-        // 백그라운드에서 실행되도록 기다리지 않고 보냅니다.
-        await sendGlobalPushNotification(
-            `새로운 ${categoryName}이 등록되었습니다.`,
-            title,
-            '/board',
-            authorId
-        );
-
+            await sendGlobalPushNotification(
+                `새로운 ${categoryName}이 등록되었습니다.`,
+                title,
+                '/board',
+                authorId
+            );
+        } catch (pushError) {
+            console.error('알림 전송 중 오류(무시 가능):', pushError);
+        }
 
         return { success: true };
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('게시물 등록 중 오류:', error);
-        return { success: false, message: '등록 중 문제가 발생했습니다.' };
+        return {
+            success: false,
+            message: error?.message || '등록 중 문제가 발생했습니다. (잠시 후 다시 시도해 주세요)'
+        };
     }
 }
 

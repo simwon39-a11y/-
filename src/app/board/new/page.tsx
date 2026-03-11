@@ -4,7 +4,9 @@ import { useState, useTransition, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createPostAction } from '../actions';
-import { PostCategory } from '@prisma/client';
+
+// 클라이언트 컴포넌트에서 @prisma/client 임포트 시 오류가 발생하므로 로컬 타입 정의
+type PostCategory = 'NOTICE' | 'RESOURCE' | 'FREE';
 
 function NewPostForm() {
     const router = useRouter();
