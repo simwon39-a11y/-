@@ -162,7 +162,7 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.11.2250 (최신)
+                    버전: 26.03.11.2260 (최신)
                 </div>
 
                 {isSubscribed === false && (
@@ -306,6 +306,43 @@ export default function DashboardClient({
                 <button onClick={handleLogout} className="btn btn-secondary" style={{ width: '100%', padding: '15px', fontSize: '16px', marginTop: '10px', backgroundColor: '#f0f0f0', color: '#666', border: 'none', cursor: 'pointer' }}>
                     로그아웃
                 </button>
+            </div>
+
+            {/* 배지 진단 도구 (개발/테스트용) */}
+            <div style={{ marginTop: '40px', padding: '15px', border: '1px dashed #ccc', borderRadius: '10px', backgroundColor: '#f9f9f9' }}>
+                <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#666' }}>🔧 배지 및 알림 진단</h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', flex: 1, minWidth: '140px' }}>
+                        <b>논리적 읽지 않음:</b> {unreadDetails?.totalUnread ?? 0}개
+                    </div>
+                    <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', flex: 1, minWidth: '140px' }}>
+                        <b>배지 API 지원:</b> {typeof navigator !== 'undefined' && 'setAppBadge' in navigator ? '✅ 지원됨' : '❌ 미지원'}
+                    </div>
+                </div>
+                <div style={{ marginTop: '10px', display: 'flex', gap: '5px' }}>
+                    <button
+                        onClick={async () => {
+                            await fetchUnread();
+                            alert('새로고침 완료!');
+                        }}
+                        style={{ flex: 1, padding: '8px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px' }}
+                    >
+                        🔄 숫자 즉시 갱신
+                    </button>
+                    <button
+                        onClick={async () => {
+                            const { sendTestPushAction } = await import('@/app/dashboard/actions');
+                            const res = await sendTestPushAction();
+                            alert(res?.message || '테스트 요청 보냄');
+                        }}
+                        style={{ flex: 1, padding: '8px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#e3f2fd', border: '1px solid #2196f3', color: '#1976d2' }}
+                    >
+                        📲 테스트 알림 & 배지 발송
+                    </button>
+                </div>
+                <p style={{ margin: '10px 0 0 0', fontSize: '11px', color: '#999' }}>
+                    ※ 숫자가 안 뜨면 <b>'설정 &gt; 알림 &gt; 해당 앱'</b>에서 <b>'앱 아이콘 배지'</b>가 켜져 있는지 확인해 주세요.
+                </p>
             </div>
 
             <style dangerouslySetInnerHTML={{

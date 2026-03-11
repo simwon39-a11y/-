@@ -6,8 +6,11 @@ export async function refreshAppBadge() {
     if (typeof window === 'undefined' || !('navigator' in window)) return;
 
     try {
-        const res = await fetch(`/api/unread?t=${Date.now()}`);
-        if (!res.ok) return;
+        const res = await fetch(`/api/unread?t=${Date.now()}`, { credentials: 'include' });
+        if (!res.ok) {
+            console.warn('[Badge] API request failed:', res.status);
+            return;
+        }
 
         const data = await res.json();
         const totalUnread = data.totalUnread || 0;
@@ -15,8 +18,10 @@ export async function refreshAppBadge() {
         if ('setAppBadge' in navigator) {
             if (totalUnread > 0) {
                 await (navigator as any).setAppBadge(totalUnread);
+                console.log(`[Badge] Updated to ${totalUnread}`);
             } else {
                 await (navigator as any).clearAppBadge();
+                console.log('[Badge] Cleared');
 
                 // 삼성 폰 등 알림 개수와 배지가 연동되는 기기를 위해 
                 // 전체 읽지 않은 숫자가 0이면 상단 알림창도 함께 청소합니다.
@@ -28,12 +33,14 @@ export async function refreshAppBadge() {
                             notifications.forEach(n => n.close());
                         }
                     } catch (swErr) {
-                        console.warn('Failed to clear notifications in refreshAppBadge:', swErr);
+                        console.warn('[Badge] Failed to clear notifications:', swErr);
                     }
                 }
             }
+        } else {
+            console.warn('[Badge] setAppBadge not supported in this browser');
         }
     } catch (err) {
-        console.error('Failed to refresh app badge:', err);
+        console.error('[Badge] Failed to refresh app badge:', err);
     }
 }
