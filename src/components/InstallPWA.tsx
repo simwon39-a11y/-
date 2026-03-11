@@ -132,7 +132,7 @@ export default function InstallPWA() {
                             <ol style={{ paddingLeft: '20px' }}>
                                 <li>위의 <b>[1단계 버튼]</b>을 누르면 크롬 브라우저가 열립니다.</li>
                                 <li>크롬이 열리면 나타나는 <b>[앱 설치하기]</b>를 누르면 성공!</li>
-                                <li>4️⃣ 바탕 화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '24px', height: '24px', verticalAlign: 'middle', borderRadius: '5px', margin: '0 4px' }} /> <b>아이콘</b>이 설치되었습니다.</li>
+                                <li>4️⃣ 바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
                                 <li style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>※ 만약 반응이 없다면 오른쪽 위 <b>점 3개(⋮)</b>를 눌러 <b>[다른 브라우저로 열기]</b>를 선택하세요.</li>
                             </ol>
                         </div>
