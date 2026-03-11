@@ -97,12 +97,12 @@ export default function InstallPWA() {
             }} onClick={handleInstallClick}>
                 <div style={{ fontWeight: 'bold', fontSize: '20px', marginBottom: '4px' }}>
                     {isKakaotalk
-                        ? '👆 버튼 눌러서 크롬으로 열기'
+                        ? '1️⃣ 설치 1단계: 이곳을 누르세요'
                         : (deferredPrompt ? '📲 바탕화면에 앱 설치하기' : '❓ 설치 버튼이 안 보인다면? (클릭)')}
                 </div>
                 <div style={{ fontSize: '14px', fontWeight: '500' }}>
                     {isKakaotalk
-                        ? '카카오톡에서는 설치가 안 됩니다. 크롬으로 연결해 드릴게요.'
+                        ? '눌러서 크롬으로 이동 후 2단계를 진행하세요.'
                         : (deferredPrompt
                             ? '아이콘만 누르면 즉시 열리는 전용 앱 설치'
                             : (showGuide ? '접기 ▲' : '안드로이드/아이폰 설치 방법 보기'))}
@@ -119,19 +119,18 @@ export default function InstallPWA() {
                     animation: 'fadeIn 0.3s'
                 }}>
                     <h3 style={{ fontSize: '18px', color: '#B8860B', marginBottom: '15px' }}>
-                        {isKakaotalk ? '⚠️ 카카오톡 사용 중' : (isIOS ? '🍎 아이폰 설치 방법' : '🤖 안드로이드 설치 방법')}
+                        {isKakaotalk ? '✅ 설치 2단계 안내' : (isIOS ? '🍎 아이폰 설치 방법' : '🤖 안드로이드 설치 방법')}
                     </h3>
 
                     {isKakaotalk ? (
                         <div style={{ lineHeight: '1.8', fontSize: '16px' }}>
                             <p style={{ color: '#E65100', fontWeight: 'bold', marginBottom: '10px' }}>
-                                카카오톡은 보안상 직접 앱 설치를 막아두었습니다.
+                                카카오톡을 탈출하여 진짜 인터넷 창으로 갑니다!
                             </p>
                             <ol style={{ paddingLeft: '20px' }}>
-                                <li>위의 <b>[노란색 버튼]</b>을 눌러보세요. (자동으로 크롬이 열립니다)</li>
-                                <li>만약 반응이 없다면, 화면 오른쪽 위 <b>점 3개(⋮)</b>를 누릅니다.</li>
-                                <li><b>[다른 브라우저로 열기]</b> 또는 <b>[Chrome으로 열기]</b>를 누르세요.</li>
-                                <li>그 다음 나타나는 <b>[앱 설치하기]</b> 버튼을 누르면 끝!</li>
+                                <li>위의 <b>[1단계 버튼]</b>을 누르면 크롬 브라우저가 열립니다.</li>
+                                <li>크롬이 열리면 나타나는 <b>[앱 설치하기]</b>를 누르면 성공!</li>
+                                <li style={{ color: '#666', fontSize: '14px' }}>※ 만약 반응이 없다면 오른쪽 위 <b>점 3개(⋮)</b>를 눌러 <b>[다른 브라우저로 열기]</b>를 선택하세요.</li>
                             </ol>
                         </div>
                     ) : isIOS ? (
