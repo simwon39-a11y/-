@@ -35,7 +35,7 @@ export default function LoginForm() {
                 <h1 style={{ color: 'var(--accent-primary)' }}>들어 가기</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>성함과 전화번호를 입력해 주세요</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.11.2250 (최신)
+                    버전: 26.03.11.2260 (최신)
                 </div>
             </header>
 
