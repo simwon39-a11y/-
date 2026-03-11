@@ -132,7 +132,6 @@ export default function InstallPWA() {
                             <ol style={{ paddingLeft: '20px' }}>
                                 <li>위의 <b>[1단계 버튼]</b>을 누르면 크롬 브라우저가 열립니다.</li>
                                 <li>크롬이 열리면 나타나는 <b>[앱 설치하기]</b>를 누르면 성공!</li>
-                                <li>4️⃣ 바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
                                 <li style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>※ 만약 반응이 없다면 오른쪽 위 <b>점 3개(⋮)</b>를 눌러 <b>[다른 브라우저로 열기]</b>를 선택하세요.</li>
                             </ol>
                         </div>
@@ -141,14 +140,14 @@ export default function InstallPWA() {
                             <li>하단 중앙의 <b>[공유 버튼]</b>(네모 위 화살표)을 누릅니다.</li>
                             <li>메뉴를 아래로 내려 <b>[홈 화면에 추가]</b>를 누릅니다.</li>
                             <li>오른쪽 상단의 <b>[추가]</b>를 누르면 성공!</li>
-                            <li>4️⃣ 바탕 화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '24px', height: '24px', verticalAlign: 'middle', borderRadius: '5px', margin: '0 4px' }} /> <b>아이콘</b>이 설치되었습니다.</li>
+                            <li>4️⃣ 바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
                         </ol>
                     ) : (
                         <ol style={{ paddingLeft: '20px', lineHeight: '1.8', fontSize: '16px' }}>
                             <li>상단 혹은 하단의 <b>[점 3개(⋮)]</b> 또는 <b>[선 3개(≡)]</b> 메뉴를 누릅니다.</li>
                             <li><b>[앱 설치]</b> 또는 <b>[홈 화면에 추가]</b> 메뉴를 찾아서 누릅니다.</li>
                             <li>팝업창이 뜨면 <b>[설치]</b> 또는 <b>[추가]</b>를 누르세요.</li>
-                            <li>4️⃣ 바탕 화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '24px', height: '24px', verticalAlign: 'middle', borderRadius: '5px', margin: '0 4px' }} /> <b>아이콘</b>이 설치되었습니다.</li>
+                            <li>4️⃣ 바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
                         </ol>
                     )}
 
