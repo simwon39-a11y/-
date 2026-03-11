@@ -23,6 +23,10 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "종무관리",
   },
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    apple: '/icons/icon-192x192.png',
+  },
 };
 
 export const viewport = {
