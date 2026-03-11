@@ -10,47 +10,66 @@ import { sendGlobalPushNotification } from '@/lib/push';
  * 특정 카테고리의 모든 게시물을 가져옵니다. (최소 정보만: ID, 제목, 카테고리, 작성자, 날짜)
  */
 export async function getPostsByCategoryAction(category: PostCategory, limit: number = 15, skip: number = 0) {
-    return await db.post.findMany({
-        where: { category },
-        take: limit,
-        skip: skip,
-        select: {
-            id: true,
-            title: true,
-            category: true,
-            createdAt: true,
-            author: {
-                select: {
-                    name: true,
-                    buddhistName: true
+    const start = performance.now();
+    try {
+        const posts = await db.post.findMany({
+            where: { category },
+            take: limit,
+            skip: skip,
+            select: {
+                id: true,
+                title: true,
+                category: true,
+                createdAt: true,
+                author: {
+                    select: {
+                        name: true,
+                        buddhistName: true
+                    }
                 }
-            }
-        },
-        orderBy: { createdAt: 'desc' }
-    });
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        const end = performance.now();
+        console.log(`[PERF] getPostsByCategory(${category}): ${Math.round(end - start)}ms`);
+        return posts;
+    } catch (error) {
+        console.error(`[PERF ERROR] getPostsByCategory:`, error);
+        throw error;
+    }
 }
 
 /**
  * 특정 ID의 게시물 상세 정보(본문, 사진, 댓글)를 가져옵니다.
  */
 export async function getPostDetailAction(id: number) {
-    return await db.post.findUnique({
-        where: { id },
-        include: {
-            images: true,
-            author: {
-                select: {
-                    name: true,
-                    buddhistName: true,
-                    temple: true
+    const start = performance.now();
+    try {
+        const post = await db.post.findUnique({
+            where: { id },
+            include: {
+                images: true,
+                author: {
+                    select: {
+                        name: true,
+                        buddhistName: true,
+                        temple: true
+                    }
+                },
+                comments: {
+                    include: { author: true },
+                    orderBy: { createdAt: 'asc' }
                 }
-            },
-            comments: {
-                include: { author: true },
-                orderBy: { createdAt: 'asc' }
             }
-        }
-    });
+        });
+        const end = performance.now();
+        console.log(`[PERF] getPostDetail(${id}): ${Math.round(end - start)}ms`);
+        // 클라이언트에서 시간을 확인할 수 있도록 메타데이터 주입 (필요시)
+        return post;
+    } catch (error) {
+        console.error(`[PERF ERROR] getPostDetail:`, error);
+        throw error;
+    }
 }
 
 /**
