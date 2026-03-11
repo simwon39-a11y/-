@@ -1,47 +1,45 @@
-// Version: 26.03.11.2140
+// Version: 26.03.11.2145
 
 self.addEventListener('push', function (event) {
     const data = event.data.json();
+    console.log('[SW] Push received:', data);
+
     const options = {
         body: data.body,
         icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-192x192.png', // 알림 배지 아이콘 (이미지 경로)
+        badge: '/icons/icon-192x192.png',
         vibrate: [100, 50, 100],
         data: {
             url: data.url || '/'
         }
     };
 
-    // 알림 표시를 먼저 실행 (일부 모바일 OS는 알림이 있어야 배지 수정을 허용함)
     const showNotificationPromise = self.registration.showNotification(data.title, options);
 
-    // 배지 업데이트 로직 (앱 아이콘 숫자)
     const updateBadgePromise = (async () => {
         try {
             if ('setAppBadge' in self.navigator) {
-                // badgeCount 필드가 있으면 우선 사용, 없으면 badge 필드(하위 호환) 확인
-                const rawBadge = data.badgeCount !== undefined ? data.badgeCount : data.badge;
-
-                if (rawBadge !== undefined) {
-                    const count = parseInt(rawBadge, 10);
-                    if (!isNaN(count)) {
-                        await self.navigator.setAppBadge(count);
-                    }
+                let count = 0;
+                if (data.badgeCount !== undefined) {
+                    count = parseInt(data.badgeCount, 10);
+                } else if (data.badge !== undefined) {
+                    count = parseInt(data.badge, 10);
                 } else {
-                    // 서버에서 다시 가져오기
-                    const res = await fetch('/api/unread', { credentials: 'include' });
+                    const res = await fetch(`/api/unread?t=${Date.now()}`, { credentials: 'include' });
                     const unreadData = await res.json();
-                    if (unreadData.totalUnread !== undefined) {
-                        const count = parseInt(unreadData.totalUnread, 10);
-                        if (!isNaN(count)) {
-                            await self.navigator.setAppBadge(count);
-                        }
+                    count = parseInt(unreadData.totalUnread, 10);
+                }
+
+                if (!isNaN(count)) {
+                    if (count > 0) {
+                        await self.navigator.setAppBadge(count);
+                    } else {
+                        await self.navigator.clearAppBadge();
                     }
                 }
             }
-
         } catch (err) {
-            console.error('Badge update error:', err);
+            console.error('[SW] Badge update error:', err);
         }
     })();
 
