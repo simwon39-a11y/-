@@ -174,7 +174,7 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.12.2310 (최신)
+                    버전: 26.03.12.2320 (최신)
                 </div>
 
                 {isSubscribed === false && (
@@ -373,7 +373,8 @@ export default function DashboardClient({
                     </button>
                 </div>
                 <p style={{ margin: '10px 0 0 0', fontSize: '11px', color: '#999' }}>
-                    ※ 숫자가 안 뜨면 <b>'설정 &gt; 알림 &gt; 해당 앱'</b>에서 <b>'앱 아이콘 배지'</b>가 켜져 있는지 확인해 주세요.
+                    ※ <b>알림창에는 숫자가 뜨는데 아이콘에만 안 뜬다면?</b><br />
+                    삼성폰 설정: <b>[설정 &gt; 알림 &gt; 고급 설정 &gt; 앱 아이콘 배지]</b>를 반드시 '켜기' 및 '숫자'로 설정해 주세요.
                 </p>
             </div>
 
