@@ -154,7 +154,7 @@ export default function DashboardClient({
     };
 
     return (
-        <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
+        <main style={{ padding: 'var(--spacing-md)', width: '100%', margin: '0' }}>
             <InstallPWA />
             {user && <PushSubscriptionHandler userId={user.id} />}
 

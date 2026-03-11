@@ -13,7 +13,7 @@ export default async function Home() {
 
   return (
 
-    <main style={{ padding: 'var(--spacing-lg)', maxWidth: '600px', margin: '0 auto' }}>
+    <main style={{ padding: 'var(--spacing-md)', width: '100%', margin: '0' }}>
       <header style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{ color: 'var(--accent-primary)', marginBottom: '10px', fontSize: '36px' }}>
           종무관리 시스템
