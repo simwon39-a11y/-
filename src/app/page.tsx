@@ -22,7 +22,7 @@ export default async function Home() {
           경기남부종무원에 오신 것을 환영합니다
         </p>
         <div style={{ fontSize: '10px', color: '#ccc', marginTop: '5px' }}>
-          버전: 26.03.09.1650
+          버전: 26.03.11.1700 (최신)
         </div>
       </header>
 
