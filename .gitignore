@@ -49,3 +49,5 @@ scripts/debug-storage.js
 # Logs
 logs
 *.log
+
+*.zip
