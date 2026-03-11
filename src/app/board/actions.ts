@@ -12,29 +12,30 @@ import { sendGlobalPushNotification } from '@/lib/push';
 export async function getPostsByCategoryAction(category: PostCategory, limit: number = 15, skip: number = 0) {
     const start = performance.now();
     try {
-        const posts = await db.post.findMany({
-            where: { category },
-            take: limit,
-            skip: skip,
-            select: {
-                id: true,
-                title: true,
-                category: true,
-                createdAt: true,
-                author: {
-                    select: {
-                        name: true,
-                        buddhistName: true
-                    }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+        const { supabase } = await import('@/lib/supabase');
+        const { data, error } = await supabase
+            .from('Post')
+            .select(`
+                id,
+                title,
+                category,
+                createdAt,
+                author:User (
+                    name,
+                    buddhistName
+                )
+            `)
+            .eq('category', category)
+            .order('createdAt', { ascending: false })
+            .range(skip, skip + limit - 1);
+
+        if (error) throw error;
+
         const end = performance.now();
-        console.log(`[PERF] getPostsByCategory(${category}): ${Math.round(end - start)}ms`);
-        return posts;
+        console.log(`[PERF-SDK] getPostsByCategory(${category}): ${Math.round(end - start)}ms`);
+        return data as any[];
     } catch (error) {
-        console.error(`[PERF ERROR] getPostsByCategory:`, error);
+        console.error(`[PERF ERROR-SDK] getPostsByCategory:`, error);
         throw error;
     }
 }
@@ -45,29 +46,36 @@ export async function getPostsByCategoryAction(category: PostCategory, limit: nu
 export async function getPostDetailAction(id: number) {
     const start = performance.now();
     try {
-        const post = await db.post.findUnique({
-            where: { id },
-            include: {
-                images: true,
-                author: {
-                    select: {
-                        name: true,
-                        buddhistName: true,
-                        temple: true
-                    }
-                },
-                comments: {
-                    include: { author: true },
-                    orderBy: { createdAt: 'asc' }
-                }
-            }
-        });
+        const { supabase } = await import('@/lib/supabase');
+        // 상세 정보와 모든 관계(이미지, 작성자, 댓글+댓글작성자)를 한 번의 HTTP 요청으로 가져옵니다.
+        const { data, error } = await supabase
+            .from('Post')
+            .select(`
+                *,
+                images:PostImage(*),
+                author:User(name, buddhistName, temple),
+                comments:Comment(
+                    *,
+                    author:User(name, buddhistName)
+                )
+            `)
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        // 댓글 정렬 (PostgREST에서 중첩 정렬이 복잡하므로 메모리에서 수행)
+        if (data.comments) {
+            data.comments.sort((a: any, b: any) =>
+                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            );
+        }
+
         const end = performance.now();
-        console.log(`[PERF] getPostDetail(${id}): ${Math.round(end - start)}ms`);
-        // 클라이언트에서 시간을 확인할 수 있도록 메타데이터 주입 (필요시)
-        return post;
+        console.log(`[PERF-SDK] getPostDetail(${id}): ${Math.round(end - start)}ms`);
+        return data;
     } catch (error) {
-        console.error(`[PERF ERROR] getPostDetail:`, error);
+        console.error(`[PERF ERROR-SDK] getPostDetail:`, error);
         throw error;
     }
 }
