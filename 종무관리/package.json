@@ -10,12 +10,12 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.2",
-    "@supabase/supabase-js": "^2.98.0",
-    "next": "16.1.6",
-    "prisma": "^6.19.2",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "@prisma/client": "^6.4.1",
+    "@supabase/supabase-js": "^2.48.1",
+    "next": "15.1.7",
+    "prisma": "^6.4.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "web-push": "^3.6.7",
     "xlsx": "^0.18.5"
   },
