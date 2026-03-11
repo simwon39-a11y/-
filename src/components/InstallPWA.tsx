@@ -111,7 +111,7 @@ export default function InstallPWA() {
                 </div>
             </div>
 
-            {(showGuide || isKakaotalk) && !deferredPrompt && (
+            {showGuide && !deferredPrompt && (
                 <div className="card" style={{
                     marginTop: '10px',
                     padding: '20px',
