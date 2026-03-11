@@ -30,3 +30,23 @@ export async function sendTestPushAction() {
     }
 }
 
+export async function clearAllSubscriptionsAction() {
+    const user = await getServerUser();
+    if (!user) return { success: false, message: '로그인이 필요합니다.' };
+
+    const { supabase } = await import('@/lib/supabase');
+
+    try {
+        const { error } = await supabase
+            .from('PushSubscription')
+            .delete()
+            .eq('userId', user.id);
+
+        if (error) throw error;
+        return { success: true, message: '구독 정보가 모두 초기화되었습니다.' };
+    } catch (err) {
+        console.error('Clear subscriptions error:', err);
+        return { success: false, message: '초기화 실패: ' + err };
+    }
+}
+

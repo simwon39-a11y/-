@@ -143,12 +143,22 @@ export default function InstallPWA() {
                             <li>바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
                         </ol>
                     ) : (
-                        <ol style={{ paddingLeft: '20px', lineHeight: '1.8', fontSize: '16px' }}>
-                            <li>우측 상단의 <b>[점 3개(⋮)]</b> 누름</li>
-                            <li><b>[홈 화면에 추가]</b> 를 찾아 선택</li>
-                            <li>팝업창이 뜨면 <b>[추가]</b> 또는 <b>[설치]</b>를 누르세요.</li>
-                            <li>바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
-                        </ol>
+                        <div style={{ lineHeight: '1.8', fontSize: '16px' }}>
+                            <p style={{ color: '#00008b', fontWeight: 'bold', marginBottom: '5px' }}>[방법 1: 상단 주소창 옆]</p>
+                            <ol style={{ paddingLeft: '20px', marginBottom: '15px' }}>
+                                <li>주소창 옆의 <b>[↓] (다운로드 모양)</b> 또는 <b>[+] (더하기 모양)</b> 아이콘을 누르세요.</li>
+                                <li>팝업창이 뜨면 <b>[설치]</b>를 누르면 즉시 완료!</li>
+                            </ol>
+                            <p style={{ color: '#00008b', fontWeight: 'bold', marginBottom: '5px' }}>[방법 2: 하단 세 줄(≡) 메뉴]</p>
+                            <ol style={{ paddingLeft: '20px' }}>
+                                <li>우측 하단의 <b>[≡] (세 줄 메뉴)</b> 버튼을 누르세요.</li>
+                                <li><b>[현재 페이지 추가]</b>를 선택한 뒤 <b>[홈 화면]</b>을 누르세요.</li>
+                                <li>바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
+                            </ol>
+                            <p style={{ color: '#666', fontSize: '14px', marginTop: '10px', fontStyle: 'italic' }}>
+                                ※ 위 방법 모두 안 보인다면 삼성 인터넷 브라우저를 <b>최신 버전</b>으로 업데이트 해주세요.
+                            </p>
+                        </div>
                     )}
 
                     <p style={{ marginTop: '15px', fontSize: '14px', color: '#666', fontStyle: 'italic' }}>

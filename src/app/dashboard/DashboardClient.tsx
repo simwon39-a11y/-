@@ -174,7 +174,7 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.12.2330 (최신)
+                    버전: 26.03.12.2340 (최신)
                 </div>
 
                 {isSubscribed === false && (
@@ -384,6 +384,8 @@ export default function DashboardClient({
                                     const regs = await navigator.serviceWorker.getRegistrations();
                                     for (const reg of regs) await reg.unregister();
                                 }
+                                const { clearAllSubscriptionsAction } = await import('@/app/dashboard/actions');
+                                await clearAllSubscriptionsAction();
                                 localStorage.clear();
                                 document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                                 alert('초기화 완료! 이제 앱을 종료하고 바탕화면 아이콘을 삭제한 뒤 처음부터 다시 설치해 주세요.');
