@@ -99,7 +99,7 @@ export default function InstallPWA() {
                     {isKakaotalk
                         ? '1️⃣ 설치 1단계: 이곳을 누르세요'
                         : (deferredPrompt ? '📲 바탕화면에 앱 설치하기' : (
-                            <span>설치 버튼이 안 보이면 <span style={{ fontSize: '26px', color: '#B8860B' }}>클릭</span></span>
+                            <span>2️⃣ 2단계 설치 버튼이 안 보이면 <span style={{ fontSize: '26px', color: '#B8860B' }}>클릭</span></span>
                         ))}
                 </div>
                 <div style={{ fontSize: '15px', fontWeight: '600' }}>
@@ -121,7 +121,7 @@ export default function InstallPWA() {
                     animation: 'fadeIn 0.3s'
                 }}>
                     <h3 style={{ fontSize: '18px', color: '#B8860B', marginBottom: '15px' }}>
-                        {isKakaotalk ? '✅ 설치 2단계 안내' : (isIOS ? '🍎 아이폰 수동 설치 방법' : '🤖 안드로이드 수동 설치 방법')}
+                        {isKakaotalk ? '✅ 설치 2단계 안내' : (isIOS ? '2️⃣ 설치 2단계: 아이폰 수동 설치' : '2️⃣ 설치 2단계: 안드로이드 수동 설치')}
                     </h3>
 
                     {isKakaotalk ? (
