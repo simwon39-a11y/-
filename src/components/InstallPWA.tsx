@@ -5,10 +5,15 @@ import { useState, useEffect } from 'react';
 export default function InstallPWA() {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isInstalled, setIsInstalled] = useState(false);
-
     const [showGuide, setShowGuide] = useState(false);
+    const [isKakaotalk, setIsKakaotalk] = useState(false);
 
     useEffect(() => {
+        const ua = window.navigator.userAgent.toLowerCase();
+        if (ua.includes('kakaotalk')) {
+            setIsKakaotalk(true);
+        }
+
         // 이미 설치되어 있는지 확인
         if (window.matchMedia('(display-mode: standalone)').matches) {
             setIsInstalled(true);
@@ -47,6 +52,19 @@ export default function InstallPWA() {
 
 
     const handleInstallClick = async () => {
+        if (isKakaotalk) {
+            // 카카오톡 탈출 로직
+            const url = window.location.href.replace(/^https?:\/\//, '');
+            if (window.navigator.userAgent.match(/Android/i)) {
+                // 안드로이드: 크롬 브라우저 강제 실행 시도
+                window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end`;
+            } else {
+                // iOS 등: 수동 안내 표시
+                setShowGuide(!showGuide);
+            }
+            return;
+        }
+
         if (!deferredPrompt) {
             setShowGuide(!showGuide);
             return;
@@ -68,26 +86,30 @@ export default function InstallPWA() {
         <div style={{ marginBottom: '25px' }}>
             <div style={{
                 padding: '18px',
-                backgroundColor: '#FFD700',
+                backgroundColor: isKakaotalk ? '#FEE500' : '#FFD700',
                 color: '#333',
                 borderRadius: '15px',
                 textAlign: 'center',
                 boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
                 cursor: 'pointer',
-                border: '3px solid #DAA520',
+                border: isKakaotalk ? '3px solid #E6CF00' : '3px solid #DAA520',
                 transition: 'transform 0.2s'
             }} onClick={handleInstallClick}>
                 <div style={{ fontWeight: 'bold', fontSize: '20px', marginBottom: '4px' }}>
-                    {deferredPrompt ? '📲 바탕화면에 앱 설치하기' : '❓ 설치 버튼이 안 보인다면? (클릭)'}
+                    {isKakaotalk
+                        ? '👆 버튼 눌러서 크롬으로 열기'
+                        : (deferredPrompt ? '📲 바탕화면에 앱 설치하기' : '❓ 설치 버튼이 안 보인다면? (클릭)')}
                 </div>
                 <div style={{ fontSize: '14px', fontWeight: '500' }}>
-                    {deferredPrompt
-                        ? '아이콘만 누르면 즉시 열리는 전용 앱 설치'
-                        : (showGuide ? '접기 ▲' : '안드로이드/아이폰 설치 방법 보기')}
+                    {isKakaotalk
+                        ? '카카오톡에서는 설치가 안 됩니다. 크롬으로 연결해 드릴게요.'
+                        : (deferredPrompt
+                            ? '아이콘만 누르면 즉시 열리는 전용 앱 설치'
+                            : (showGuide ? '접기 ▲' : '안드로이드/아이폰 설치 방법 보기'))}
                 </div>
             </div>
 
-            {showGuide && !deferredPrompt && (
+            {(showGuide || isKakaotalk) && !deferredPrompt && (
                 <div className="card" style={{
                     marginTop: '10px',
                     padding: '20px',
@@ -97,10 +119,22 @@ export default function InstallPWA() {
                     animation: 'fadeIn 0.3s'
                 }}>
                     <h3 style={{ fontSize: '18px', color: '#B8860B', marginBottom: '15px' }}>
-                        {isIOS ? '🍎 아이폰 설치 방법' : '🤖 안드로이드 설치 방법'}
+                        {isKakaotalk ? '⚠️ 카카오톡 사용 중' : (isIOS ? '🍎 아이폰 설치 방법' : '🤖 안드로이드 설치 방법')}
                     </h3>
 
-                    {isIOS ? (
+                    {isKakaotalk ? (
+                        <div style={{ lineHeight: '1.8', fontSize: '16px' }}>
+                            <p style={{ color: '#E65100', fontWeight: 'bold', marginBottom: '10px' }}>
+                                카카오톡은 보안상 직접 앱 설치를 막아두었습니다.
+                            </p>
+                            <ol style={{ paddingLeft: '20px' }}>
+                                <li>위의 <b>[노란색 버튼]</b>을 눌러보세요. (자동으로 크롬이 열립니다)</li>
+                                <li>만약 반응이 없다면, 화면 오른쪽 위 <b>점 3개(⋮)</b>를 누릅니다.</li>
+                                <li><b>[다른 브라우저로 열기]</b> 또는 <b>[Chrome으로 열기]</b>를 누르세요.</li>
+                                <li>그 다음 나타나는 <b>[앱 설치하기]</b> 버튼을 누르면 끝!</li>
+                            </ol>
+                        </div>
+                    ) : isIOS ? (
                         <ol style={{ paddingLeft: '20px', lineHeight: '1.8', fontSize: '16px' }}>
                             <li>하단 중앙의 <b>[공유 버튼]</b>(네모 위 화살표)을 누릅니다.</li>
                             <li>메뉴를 아래로 내려 <b>[홈 화면에 추가]</b>를 누릅니다.</li>
