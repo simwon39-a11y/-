@@ -140,14 +140,14 @@ export default function InstallPWA() {
                             <li>하단 중앙의 <b>[공유 버튼]</b>(네모 위 화살표)을 누릅니다.</li>
                             <li>메뉴를 아래로 내려 <b>[홈 화면에 추가]</b>를 누릅니다.</li>
                             <li>오른쪽 상단의 <b>[추가]</b>를 누르면 성공!</li>
-                            <li>4️⃣ 바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
+                            <li>바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
                         </ol>
                     ) : (
                         <ol style={{ paddingLeft: '20px', lineHeight: '1.8', fontSize: '16px' }}>
-                            <li>1. 우측 상단의 <b>[점 3개(⋮)]</b> 누름</li>
-                            <li>2. <b>[홈 화면에 추가]</b> 를 찾아 선택</li>
-                            <li>3. 팝업창이 뜨면 <b>[추가]</b> 또는 <b>[설치]</b>를 누르세요.</li>
-                            <li>4️⃣ 바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
+                            <li>우측 상단의 <b>[점 3개(⋮)]</b> 누름</li>
+                            <li><b>[홈 화면에 추가]</b> 를 찾아 선택</li>
+                            <li>팝업창이 뜨면 <b>[추가]</b> 또는 <b>[설치]</b>를 누르세요.</li>
+                            <li>바탕화면에 <img src="/icons/icon-192x192.png" alt="아이콘" style={{ width: '48px', height: '48px', verticalAlign: 'middle', borderRadius: '12px', margin: '5px 10px', boxShadow: '0 4px 8px rgba(0,0,0,0.15)' }} /> <b>아이콘</b>이 생겼습니다.</li>
                         </ol>
                     )}
 
