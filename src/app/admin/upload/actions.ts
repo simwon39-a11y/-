@@ -53,18 +53,25 @@ export async function uploadExcelAction(formData: FormData) {
             normalizedRow[key.trim()] = row[key];
         });
 
-        // '회원관리.csv' 헤더에 정확히 맞춰 매핑합니다.
-        const name = normalizedRow['성명'] || normalizedRow['성함'] || normalizedRow['이름'];
-        const phone = normalizedRow['핸드폰'] || normalizedRow['전화번호'] || normalizedRow['연락처'] || normalizedRow['휴대폰'];
-        const buddhistName = normalizedRow['법명'] || normalizedRow['불명'] || '';
-        const buddhistTitle = normalizedRow['법호'] || '';
-        const buddhistRank = normalizedRow['법계'] || '';
-        const status = normalizedRow['신분'] || normalizedRow['구분'] || '';
-        const position = normalizedRow['직책'] || '';
-        const temple = normalizedRow['소속사찰'] || normalizedRow['사찰'] || normalizedRow['사찰명'] || '';
-        const templePosition = normalizedRow['소속사찰 직위'] || normalizedRow['사찰직위'] || '';
-        const postalCode = normalizedRow['우편번호'] || '';
-        const templeAddress = normalizedRow['사찰주소'] || normalizedRow['주소'] || '';
+        // 유연한 매핑 함수: 키 목록 중 검색어가 포함된 첫 번째 값을 찾습니다.
+        const findValue = (keywords: string[]) => {
+            const key = Object.keys(normalizedRow).find(k =>
+                keywords.some(kw => k.includes(kw))
+            );
+            return key ? normalizedRow[key] : '';
+        };
+
+        const name = findValue(['성명', '성함', '이름']);
+        const phone = findValue(['핸드폰', '전화번호', '연락처', '휴대폰', '번호']);
+        const buddhistName = findValue(['법명', '불명']);
+        const buddhistTitle = findValue(['법호']);
+        const buddhistRank = findValue(['법계']);
+        const status = findValue(['신분', '구분']);
+        const position = findValue(['직책']);
+        const temple = findValue(['소속사찰', '사찰', '사찰명']);
+        const templePosition = findValue(['사찰직위', '소속사찰 직위']);
+        const postalCode = findValue(['우편번호']);
+        const templeAddress = findValue(['사찰주소', '주소']);
 
         if (name && phone) {
             const cleanPhone = String(phone).replace(/-/g, '').trim();
@@ -108,5 +115,10 @@ export async function uploadExcelAction(formData: FormData) {
     revalidatePath('/search'); // 검색 페이지도 갱신
     revalidatePath('/board');
     revalidatePath('/dashboard');
-    return { success: true, count: savedCount };
+
+    return {
+        success: true,
+        count: savedCount,
+        detectedHeaders: data.length > 0 ? Object.keys(data[0] as object) : []
+    };
 }

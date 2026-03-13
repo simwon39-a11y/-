@@ -8,7 +8,7 @@ import AdminGuard from '@/components/AdminGuard';
 export default function AdminUpload() {
     const [file, setFile] = useState<File | null>(null);
     const [isPending, startTransition] = useTransition();
-    const [result, setResult] = useState<{ success: boolean; count: number } | null>(null);
+    const [result, setResult] = useState<{ success: boolean; count: number; detectedHeaders?: string[] } | null>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -87,13 +87,19 @@ export default function AdminUpload() {
                             {result.success && result.count > 0 ? (
                                 `총 ${result.count}명의 회원이 성공적으로 등록되었습니다!`
                             ) : (
-                                <>
-                                    등록된 회원이 0명입니다.<br />
-                                    <span style={{ fontSize: '14px', fontWeight: 'normal' }}>
-                                        엑셀의 첫 번째 칸 제목이 '성함' 또는 '이름'인지, <br />
-                                        두 번째 칸 제목이 '핸드폰' 또는 '전화번호'인지 확인해 주세요.
+                                <div style={{ textAlign: 'left' }}>
+                                    <p style={{ textAlign: 'center', marginBottom: '10px' }}>등록된 회원이 0명입니다.</p>
+                                    <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#666' }}>
+                                        <strong>[원인 분석]</strong> 서버가 읽어낸 엑셀 제목은 다음과 같습니다:<br />
+                                        <div style={{ background: '#fff', padding: '5px', borderRadius: '4px', margin: '5px 0', wordBreak: 'break-all' }}>
+                                            {result.detectedHeaders && result.detectedHeaders.length > 0
+                                                ? result.detectedHeaders.join(', ')
+                                                : '제목을 읽지 못했습니다.'}
+                                        </div>
+                                        제목 중에 <strong>'성명'</strong>(또는 이름)과 <strong>'핸드폰'</strong>(또는 전화번호)이라는 단어가 포함되어 있어야 합니다. <br />
+                                        엑셀의 가장 첫 번째 줄에 이 제목들이 있는지 확인해 주세요.
                                     </span>
-                                </>
+                                </div>
                             )}
                         </div>
                     )}
