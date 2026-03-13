@@ -190,7 +190,7 @@ export default function DashboardClient({
                     }}
                 >
                     [여기를 눌러 v15.2 업데이트] <br />
-                    현재 버전: 2026.03.13-v15.2 (주소 잘림 최종 수정판)
+                    현재 버전: 2026.03.13-v15.3 (주소 잘림 최종 수정판)
                 </div>
 
                 {isSubscribed === false && (

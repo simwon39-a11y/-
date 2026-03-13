@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "종무 소통 시스템",
   description: "사찰 종무 소통 및 회원 관리 시스템",
-  manifest: "/manifest.json?v=26.03.13.v14",
+  manifest: "/manifest.json?v=26.03.13.v15.3",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -75,7 +75,7 @@ export default function RootLayout({
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   // 무한 루프 방지를 위해 실시간 타임스탬프 대신 고정 버전을 사용합니다.
-                  const swUrl = '/sw.js?v=26.03.13.v14';
+                  const swUrl = '/sw.js?v=26.03.13.v15.3';
                   navigator.serviceWorker.register(swUrl).then(function(registration) {
                     console.log('SW registered with timestamp:', swUrl);
                     
