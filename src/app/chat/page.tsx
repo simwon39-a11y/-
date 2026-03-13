@@ -147,12 +147,12 @@ function ChatContent() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {searchResults.length > 0 ? searchResults.map((result) => (
                                 <Link key={result.id} href={`/chat?to=${result.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                    <div className="card" style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '4px solid var(--accent-primary)' }}>
+                                    <div className="card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '4px solid var(--accent-primary)' }}>
                                         <div>
-                                            <div style={{ fontWeight: 'bold', fontSize: '17px' }}>{result.name} ({result.buddhistName || '법명없음'})</div>
-                                            <div style={{ fontSize: '13px', color: '#666' }}>{result.temple || '사찰 미지정'}</div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '25px' }}>{result.name} ({result.buddhistName || '법명없음'})</div>
+                                            <div style={{ fontSize: '19px', color: '#666', marginTop: '5px' }}>{result.temple || '사찰 미지정'}</div>
                                         </div>
-                                        <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold', fontSize: '14px' }}>대화하기 &gt;</span>
+                                        <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold', fontSize: '21px' }}>대화하기 &gt;</span>
                                     </div>
                                 </Link>
                             )) : searchQuery && !isSearching && (
