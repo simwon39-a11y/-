@@ -189,8 +189,8 @@ export default function DashboardClient({
                         marginBottom: '10px'
                     }}
                 >
-                    [여기를 눌러 v15.4 업데이트] <br />
-                    현재 버전: 2026.03.13-v15.4 (스마트 데이터 병합 엔진 적용)
+                    [여기를 눌러 v16 업데이트] <br />
+                    현재 버전: 2026.03.13-v16 (디자인 최종 보정판)
                 </div>
 
                 {isSubscribed === false && (
