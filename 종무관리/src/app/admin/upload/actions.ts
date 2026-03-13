@@ -6,94 +6,120 @@ import { revalidatePath } from 'next/cache';
 
 /**
  * 관리자가 업로드한 엑셀 파일을 읽어서 회원으로 등록하는 '서버 액션'입니다.
- * 초보자 설명: 화면에서 파일을 보내면, 여기서 그 파일을 뜯어서 주소록(DB)에 한 명씩 옮겨 적습니다.
+ * v6: 정밀 진단 데이터 반환 및 안전성 최강화 (종무관리 폴더 동기화)
  */
 export async function uploadExcelAction(formData: FormData) {
-    const file = formData.get('excel-file') as File;
-    if (!file) throw new Error('파일이 없습니다.');
+    const startTime = Date.now();
+    const TIMEOUT_LIMIT = 8500;
 
-    // 1. 파일을 읽을 수 있는 데이터로 바꿉니다.
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    try {
+        const file = formData.get('excel-file') as File;
+        if (!file) {
+            return { success: false, message: '파일이 선택되지 않았습니다.', count: 0 };
+        }
 
-    // 2. XLSX 라이브러리를 사용해 파일을 읽습니다. (Excel, CSV 모두 지원)
-    // 팁: 한국어 CSV는 주로 CP949(EUC-KR) 형식이므로 인코딩 설정을 고려합니다.
-    const workbook = XLSX.read(buffer, {
-        type: 'buffer',
-        codepage: 949 // 한국어 인코딩 대응
-    });
+        const bytes = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(bytes);
+        const fileName = file.name.toLowerCase();
 
-    // 3. 첫 번째 시트(쪽)를 가져옵니다.
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
+        let workbook;
+        if (fileName.endsWith('.csv')) {
+            const eucDecoder = new TextDecoder('euc-kr');
+            const eucString = eucDecoder.decode(uint8Array);
 
-    // 4. 표 형식으로 된 데이터를 목록으로 바꿉니다.
-    const data = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+            if (eucString.includes('성명') || eucString.includes('이름') || eucString.includes('전화')) {
+                workbook = XLSX.read(eucString, { type: 'string' });
+            } else {
+                const utfDecoder = new TextDecoder('utf-8');
+                const utfString = utfDecoder.decode(uint8Array);
+                workbook = XLSX.read(utfString, { type: 'string' });
+            }
+        } else {
+            workbook = XLSX.read(uint8Array, { type: 'array' });
+        }
 
-    console.log('읽어온 데이터 개수:', data.length);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const data = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
-    // 5. 한 명씩 우리 데이터베이스(창고)에 넣습니다.
-    const rows = data as any[];
-    for (const row of rows) {
-        // 모든 키를 가져와서 공백을 제거한 버전으로 맵을 만듭니다.
-        const normalizedRow: any = {};
-        Object.keys(row).forEach(key => {
-            normalizedRow[key.trim()] = row[key];
+        if (!data || data.length === 0) {
+            return { success: false, message: '서버가 파일을 읽었으나 내용이 비어있습니다.', count: 0 };
+        }
+
+        const rows = data as any[];
+        let savedCount = 0;
+        let isTimedOut = false;
+
+        const sampleRows = rows.slice(0, 2).map(r => {
+            const entry: any = {};
+            Object.keys(r).forEach(k => entry[k.substring(0, 20)] = String(r[k]).substring(0, 20));
+            return entry;
         });
 
-        // '회원관리.csv' 헤더에 정확히 맞춰 매핑합니다.
-        const name = normalizedRow['성명'] || normalizedRow['성함'] || normalizedRow['이름'];
-        const phone = normalizedRow['핸드폰'] || normalizedRow['전화번호'] || normalizedRow['연락처'] || normalizedRow['휴대폰'];
-        const buddhistName = normalizedRow['법명'] || normalizedRow['불명'] || '';
-        const buddhistTitle = normalizedRow['법호'] || '';
-        const buddhistRank = normalizedRow['법계'] || '';
-        const status = normalizedRow['신분'] || normalizedRow['구분'] || '';
-        const position = normalizedRow['직책'] || '';
-        const temple = normalizedRow['소속사찰'] || normalizedRow['사찰'] || normalizedRow['사찰명'] || '';
-        const templePosition = normalizedRow['소속사찰 직위'] || normalizedRow['사찰직위'] || '';
-        const postalCode = normalizedRow['우편번호'] || '';
-        const templeAddress = normalizedRow['사찰주소'] || normalizedRow['주소'] || '';
+        for (const row of rows) {
+            if (Date.now() - startTime > TIMEOUT_LIMIT) {
+                isTimedOut = true;
+                break;
+            }
 
-        if (name && phone) {
-            const cleanPhone = String(phone).replace(/-/g, '').trim();
-            // 전화번호가 유효한지 확인 (기본적인 체크)
-            if (cleanPhone.length >= 9) {
-                await db.user.upsert({
-                    where: { phone: cleanPhone },
-                    update: {
-                        name: String(name).trim(),
-                        buddhistName: String(buddhistName).trim(),
-                        buddhistTitle: String(buddhistTitle).trim(),
-                        buddhistRank: String(buddhistRank).trim(),
-                        status: String(status).trim(),
-                        position: String(position).trim(),
-                        temple: String(temple).trim(),
-                        templePosition: String(templePosition).trim(),
-                        postalCode: String(postalCode).trim(),
-                        templeAddress: String(templeAddress).trim()
-                    },
-                    create: {
-                        name: String(name).trim(),
-                        phone: cleanPhone,
-                        buddhistName: String(buddhistName).trim(),
-                        buddhistTitle: String(buddhistTitle).trim(),
-                        buddhistRank: String(buddhistRank).trim(),
-                        status: String(status).trim(),
-                        position: String(position).trim(),
-                        temple: String(temple).trim(),
-                        templePosition: String(templePosition).trim(),
-                        postalCode: String(postalCode).trim(),
-                        templeAddress: String(templeAddress).trim()
-                    },
+            const normalizedRow: any = {};
+            Object.keys(row).forEach(key => {
+                normalizedRow[key.toString().trim()] = String(row[key]).trim();
+            });
+
+            const findByKey = (keywords: string[]) => {
+                const key = Object.keys(normalizedRow).find(k =>
+                    keywords.some(kw => k.includes(kw))
+                );
+                return key ? normalizedRow[key] : null;
+            };
+
+            let name = findByKey(['성명', '성함', '이름', '성 명', '이 름']);
+            let phone = findByKey(['핸드폰', '전화번호', '연락처', '휴대폰', '번호', '연락', '폰']);
+
+            if (!phone || !name) {
+                Object.keys(normalizedRow).forEach(key => {
+                    const val = normalizedRow[key].replace(/-/g, '').replace(/\s/g, '');
+                    if (!phone && val.startsWith('01') && val.length >= 9 && val.length <= 11 && /^\d+$/.test(val)) {
+                        phone = normalizedRow[key];
+                    }
+                    if (!name && /^[가-힣]{2,5}$/.test(normalizedRow[key]) && !key.includes('법명') && !key.includes('사찰')) {
+                        name = normalizedRow[key];
+                    }
                 });
             }
-        }
-    }
 
-    // 화면을 새로고침해서 바뀐 데이터를 보여주도록 합니다.
-    revalidatePath('/admin/upload');
-    revalidatePath('/search'); // 검색 페이지도 갱신
-    revalidatePath('/board');
-    revalidatePath('/dashboard');
-    return { success: true, count: data.length };
+            if (name && phone) {
+                const cleanPhone = phone.replace(/-/g, '').replace(/\s/g, '');
+                if (cleanPhone.length >= 9) {
+                    await db.user.upsert({
+                        where: { phone: cleanPhone },
+                        update: {
+                            name: name,
+                            buddhistName: findByKey(['법명', '불명', '법 명']) || '',
+                            temple: findByKey(['소속사찰', '사찰', '사찰명']) || '',
+                        },
+                        create: {
+                            name: name,
+                            phone: cleanPhone,
+                            buddhistName: findByKey(['법명', '불명', '법 명']) || '',
+                            temple: findByKey(['소속사찰', '사찰', '사찰명']) || '',
+                        },
+                    });
+                    savedCount++;
+                }
+            }
+        }
+
+        revalidatePath('/search');
+        return {
+            success: true,
+            count: savedCount,
+            isPartial: isTimedOut,
+            debugInfo: sampleRows,
+            message: savedCount === 0 ? '이름이나 전화번호 열을 찾지 못했습니다. 아래 진단 데이터를 확인해주세요.' : '등록 완료!'
+        };
+    } catch (error: any) {
+        return { success: false, message: `서버 오류: ${error.message}`, count: 0 };
+    }
 }

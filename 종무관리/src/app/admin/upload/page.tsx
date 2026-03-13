@@ -7,87 +7,100 @@ import AdminGuard from '@/components/AdminGuard';
 
 export default function AdminUpload() {
     const [file, setFile] = useState<File | null>(null);
+    const [result, setResult] = useState<{ success: boolean; message: string; count: number; debugInfo?: any[] } | null>(null);
     const [isPending, startTransition] = useTransition();
-    const [result, setResult] = useState<{ success: boolean; count: number } | null>(null);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
-            setResult(null);
-        }
-    };
-
-    const handleUpload = async () => {
+    const handleUpload = async (e: React.FormEvent) => {
+        e.preventDefault();
         if (!file) return;
 
         const formData = new FormData();
         formData.append('excel-file', file);
 
         startTransition(async () => {
-            try {
-                const res = await uploadExcelAction(formData);
-                setResult(res);
-            } catch (error) {
-                alert('업로드 중 오류가 발생했습니다.');
-            }
+            const res = await uploadExcelAction(formData);
+            setResult(res);
         });
     };
 
     return (
         <AdminGuard>
-            <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
-                <header style={{ marginBottom: 'var(--spacing-lg)' }}>
-                    <Link href="/" style={{ textDecoration: 'none', color: 'var(--text-secondary)', fontSize: '18px' }}>
-                        ← 처음으로 돌아가기
-                    </Link>
-                    <h1 style={{ marginTop: 'var(--spacing-sm)', color: 'var(--accent-primary)' }}>
-                        엑셀 자료 등록
-                    </h1>
+            <main style={{ padding: 'var(--spacing-md)', maxWidth: '800px', margin: '0 auto' }}>
+                <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
+                    <h1 style={{ color: 'var(--accent-primary)' }}>회원 명단 대량 등록</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>엑셀(.xlsx) 또는 CSV 파일을 업로드해 주세요.</p>
                 </header>
 
                 <section className="card">
-                    <h2 style={{ marginBottom: 'var(--spacing-sm)' }}>1. 엑셀 파일 선택</h2>
-                    <p style={{ marginBottom: 'var(--spacing-md)', fontSize: '18px' }}>
-                        준비하신 '회원명단' 엑셀 파일을 아래 버튼을 눌러 선택해 주세요.
-                    </p>
-
-                    <input
-                        type="file"
-                        name="excel-file"
-                        accept=".xlsx, .xls"
-                        onChange={handleFileChange}
-                        style={{ marginBottom: 'var(--spacing-md)', display: 'block', padding: '10px', width: '100%', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                    />
-
-                    {file && (
-                        <div style={{ marginBottom: 'var(--spacing-md)', padding: '10px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
-                            선택된 파일: <strong>{file.name}</strong>
+                    <form onSubmit={handleUpload}>
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>파일 선택</label>
+                            <input
+                                type="file"
+                                accept=".xlsx, .xls, .csv"
+                                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}
+                            />
                         </div>
-                    )}
+                        <button
+                            type="submit"
+                            disabled={!file || isPending}
+                            className="btn btn-primary"
+                            style={{ width: '100%', height: '50px', fontSize: '18px' }}
+                        >
+                            {isPending ? '등록 중...' : '업로드 시작'}
+                        </button>
+                    </form>
 
-                    <button
-                        onClick={handleUpload}
-                        className="btn btn-primary"
-                        style={{ width: '100%', opacity: file ? 1 : 0.5 }}
-                        disabled={!file || isPending}
-                    >
-                        {isPending ? '등록 중...' : '데이터 등록하기'}
-                    </button>
+                    {result && (
+                        <div style={{
+                            marginTop: '20px',
+                            padding: '20px',
+                            borderRadius: '12px',
+                            backgroundColor: result.success ? '#e8f5e9' : '#ffebee',
+                            color: result.success ? '#2e7d32' : '#c62828',
+                            border: `1px solid ${result.success ? '#a5d6a7' : '#ef9a9a'}`
+                        }}>
+                            <h3 style={{ margin: '0 0 10px 0' }}>{result.success ? '결과' : '오류 발성'}</h3>
+                            <p style={{ fontWeight: 'bold', fontSize: '18px' }}>{result.message}</p>
+                            <p>처리된 인원: <strong>{result.count}명</strong></p>
 
-                    {result?.success && (
-                        <div style={{ marginTop: 'var(--spacing-md)', padding: '15px', background: '#e8f5e9', color: '#2e7d32', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
-                            총 {result.count}명의 회원이 성공적으로 등록되었습니다!
+                            {result.debugInfo && (
+                                <div style={{ marginTop: '20px', padding: '10px', background: '#fff', border: '1px solid #ddd', borderRadius: '8px', overflowX: 'auto' }}>
+                                    <p style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>▼ 서버가 읽어낸 파일 내용 예시 (진단용)</p>
+                                    <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse' }}>
+                                        <thead>
+                                            <tr>
+                                                {Object.keys(result.debugInfo[0] || {}).map(k => (
+                                                    <th key={k} style={{ border: '1px solid #eee', padding: '4px', background: '#f9f9f9' }}>{k}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {result.debugInfo.map((row, i) => (
+                                                <tr key={i}>
+                                                    {Object.values(row).map((v: any, j) => (
+                                                        <td key={j} style={{ border: '1px solid #eee', padding: '4px' }}>{v}</td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     )}
                 </section>
 
-                <section style={{ marginTop: 'var(--spacing-lg)' }}>
-                    <h3 style={{ marginBottom: 'var(--spacing-sm)' }}>도움말</h3>
-                    <ul style={{ paddingLeft: '20px', color: 'var(--text-secondary)' }}>
-                        <li>엑셀의 첫 번째 칸은 '성함', 두 번째 칸은 '전화번호'로 작성해 주세요.</li>
-                        <li>파일 선택 후 '데이터 등록하기' 버튼을 꼭 눌러주셔야 합니다.</li>
-                    </ul>
-                </section>
+                <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                    <Link href="/dashboard" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                        ← 대시보드로 돌아가기
+                    </Link>
+                </div>
+
+                <footer style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', color: '#ccc', fontSize: '12px' }}>
+                    시스템 버전: 2026.03.13-v6 (정밀 진단 모드)
+                </footer>
             </main>
         </AdminGuard >
     );
