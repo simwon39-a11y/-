@@ -144,7 +144,7 @@ export default function AdminUpload() {
                 </section>
 
                 <footer style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', color: '#ccc', fontSize: '12px' }}>
-                    시스템 버전: 2026.03.13-v3 (한글 인코딩 문제 해결)
+                    시스템 버전: 2026.03.13-v4 (표준 인코딩 엔진 적용)
                 </footer>
             </main>
         </AdminGuard >
