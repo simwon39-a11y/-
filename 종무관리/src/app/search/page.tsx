@@ -59,11 +59,11 @@ export default function MemberSearch() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <div style={{ width: '100%' }}>
                                         <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '10px', gap: '8px' }}>
-                                            <h2 style={{ color: 'var(--accent-primary)', fontSize: '22px', margin: 0 }}>{member.name}</h2>
+                                            <h2 style={{ color: 'var(--accent-primary)', fontSize: '32px', margin: 0 }}>{member.name}</h2>
                                         </div>
 
-                                        {/* 상세 정보 표출: 성명, 법명, 법호, 법계, 소속사찰, 전화번호, 사찰주소 */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '85px 1fr', gap: '10px 12px', fontSize: '14px', borderTop: '1px solid #f0f0f0', paddingTop: '15px', marginTop: '5px' }}>
+                                        {/* 상세 정보 표출: 성명, 법명, 법호, 법계, 소속사찰, 전화번호 */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px 15px', fontSize: '21px', borderTop: '1px solid #f0f0f0', paddingTop: '15px', marginTop: '5px' }}>
 
                                             {/* 법명 */}
                                             <div style={{ color: '#888' }}>법명</div>
@@ -85,21 +85,28 @@ export default function MemberSearch() {
                                             <div style={{ color: '#888' }}>소속 사찰</div>
                                             <div style={{ fontWeight: '600', color: '#333' }}>
                                                 {member.temple || <span style={{ color: '#ccc', fontWeight: 'normal' }}>미지정</span>}
-                                                {member.templePosition && <span style={{ marginLeft: '6px', fontWeight: 'normal', color: '#666', fontSize: '13px' }}>({member.templePosition})</span>}
+                                                {member.templePosition && <span style={{ marginLeft: '8px', fontWeight: 'normal', color: '#666', fontSize: '18px' }}>({member.templePosition})</span>}
                                             </div>
 
                                             {/* 연락처 */}
                                             <div style={{ color: '#888' }}>연락처</div>
-                                            <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--accent-primary)', letterSpacing: '0.5px' }}>{formatPhoneNumber(member.phone)}</div>
+                                            <div style={{ fontSize: '26px', fontWeight: 'bold', color: 'var(--accent-primary)', letterSpacing: '0.5px' }}>{formatPhoneNumber(member.phone)}</div>
+                                        </div>
 
-                                            {/* 사찰 주소 */}
-                                            <div style={{ color: '#888' }}>사찰 주소</div>
+                                        {/* 사찰 주소: 그리드 밖으로 빼서 가로 전체 너비 사용 */}
+                                        <div style={{ borderTop: '1px solid #f9f9f9', marginTop: '15px', paddingTop: '10px' }}>
+                                            <div style={{ color: '#888', fontSize: '18px', marginBottom: '5px' }}>사찰 주소</div>
                                             <div style={{
-                                                fontSize: '19px',
-                                                lineHeight: '1.5',
-                                                color: '#555',
+                                                fontSize: '22px',
+                                                lineHeight: '1.4',
+                                                color: '#333',
                                                 wordBreak: 'break-all',
-                                                overflowWrap: 'anywhere'
+                                                overflowWrap: 'anywhere',
+                                                whiteSpace: 'normal',
+                                                display: 'block',
+                                                backgroundColor: '#fdfdfd',
+                                                padding: '10px',
+                                                borderRadius: '8px'
                                             }}>
                                                 {member.templeAddress ? (
                                                     <>
@@ -117,8 +124,8 @@ export default function MemberSearch() {
                                         flex: 1,
                                         textDecoration: 'none',
                                         textAlign: 'center',
-                                        padding: '12px',
-                                        fontSize: '15px',
+                                        padding: '15px',
+                                        fontSize: '20px',
                                         fontWeight: '500',
                                         borderRadius: '8px',
                                         backgroundColor: '#f8f5f2',
@@ -129,8 +136,8 @@ export default function MemberSearch() {
                                         flex: 1,
                                         textDecoration: 'none',
                                         textAlign: 'center',
-                                        padding: '12px',
-                                        fontSize: '15px',
+                                        padding: '15px',
+                                        fontSize: '20px',
                                         fontWeight: '600',
                                         borderRadius: '8px'
                                     }}>대화하기</Link>

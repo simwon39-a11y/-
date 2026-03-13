@@ -23,14 +23,17 @@ export default async function Home() {
         </p>
         <div
           onClick={async () => {
-            if (confirm('최신 버전으로 업데이트하기 위해 캐시를 삭제하고 다시 불러오시겠습니까?')) {
-              const names = await caches.keys();
-              for (let name of names) await caches.delete(name);
+            if (confirm('최신 버전(v15)으로 즉시 업데이트하기 위해 모든 캐시를 삭제하시겠습니까?')) {
+              if ('caches' in window) {
+                const names = await caches.keys();
+                for (let name of names) await caches.delete(name);
+              }
               if ('serviceWorker' in navigator) {
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 for (let registration of registrations) await registration.unregister();
               }
-              window.location.reload();
+              // 타임스탬프를 이용해 캐시 무시 강제 로드
+              window.location.href = '/?update=' + Date.now();
             }
           }}
           style={{
@@ -46,8 +49,8 @@ export default async function Home() {
             boxShadow: '0 4px 10px rgba(30, 144, 255, 0.3)'
           }}
         >
-          [ 여기를 눌러 v14 최종 업데이트 완료 ] <br />
-          현재 버전: 2026.03.13-v14 (대시보드 버전 수정판)
+          [ 여기를 눌러 v15 최종 업데이트 완료 ] <br />
+          현재 버전: 2026.03.13-v15 (주소 잘림 수정판)
         </div>
       </header>
 

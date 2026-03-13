@@ -162,7 +162,20 @@ export default function DashboardClient({
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>종무 소통 시스템</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div
-                    onClick={() => window.location.reload()}
+                    onClick={() => {
+                        if (confirm('v15 버전으로 즉시 업데이트하시겠습니까?')) {
+                            if ('serviceWorker' in navigator) {
+                                navigator.serviceWorker.getRegistrations().then(registrations => {
+                                    for (let registration of registrations) {
+                                        registration.unregister();
+                                    }
+                                    window.location.href = '/?update=' + Date.now();
+                                });
+                            } else {
+                                window.location.href = '/?update=' + Date.now();
+                            }
+                        }
+                    }}
                     style={{
                         fontSize: '14px',
                         color: '#fff',
@@ -176,8 +189,8 @@ export default function DashboardClient({
                         marginBottom: '10px'
                     }}
                 >
-                    [여기를 눌러 v14 업데이트] <br />
-                    현재 버전: 2026.03.13-v14
+                    [여기를 눌러 v15 업데이트] <br />
+                    현재 버전: 2026.03.13-v15
                 </div>
 
                 {isSubscribed === false && (

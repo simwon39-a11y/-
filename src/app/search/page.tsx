@@ -62,7 +62,7 @@ export default function MemberSearch() {
                                             <h2 style={{ color: 'var(--accent-primary)', fontSize: '32px', margin: 0 }}>{member.name}</h2>
                                         </div>
 
-                                        {/* 상세 정보 표출: 성명, 법명, 법호, 법계, 소속사찰, 전화번호, 사찰주소 */}
+                                        {/* 상세 정보 표출: 성명, 법명, 법호, 법계, 소속사찰, 전화번호 */}
                                         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px 15px', fontSize: '21px', borderTop: '1px solid #f0f0f0', paddingTop: '15px', marginTop: '5px' }}>
 
                                             {/* 법명 */}
@@ -91,15 +91,22 @@ export default function MemberSearch() {
                                             {/* 연락처 */}
                                             <div style={{ color: '#888' }}>연락처</div>
                                             <div style={{ fontSize: '26px', fontWeight: 'bold', color: 'var(--accent-primary)', letterSpacing: '0.5px' }}>{formatPhoneNumber(member.phone)}</div>
+                                        </div>
 
-                                            {/* 사찰 주소 */}
-                                            <div style={{ color: '#888' }}>사찰 주소</div>
+                                        {/* 사찰 주소: 그리드 밖으로 빼서 가로 전체 너비 사용 */}
+                                        <div style={{ borderTop: '1px solid #f9f9f9', marginTop: '15px', paddingTop: '10px' }}>
+                                            <div style={{ color: '#888', fontSize: '18px', marginBottom: '5px' }}>사찰 주소</div>
                                             <div style={{
-                                                fontSize: '19px',
-                                                lineHeight: '1.5',
-                                                color: '#555',
+                                                fontSize: '22px',
+                                                lineHeight: '1.4',
+                                                color: '#333',
                                                 wordBreak: 'break-all',
-                                                overflowWrap: 'anywhere'
+                                                overflowWrap: 'anywhere',
+                                                whiteSpace: 'normal',
+                                                display: 'block',
+                                                backgroundColor: '#fdfdfd',
+                                                padding: '10px',
+                                                borderRadius: '8px'
                                             }}>
                                                 {member.templeAddress ? (
                                                     <>
