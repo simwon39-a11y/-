@@ -47,7 +47,7 @@ export default async function Home() {
           }}
         >
           [ 여기를 눌러 업데이트 완료하기 ] <br />
-          현재 버전: 26.03.13.v4
+          현재 버전: 26.03.13.v5
         </div>
       </header>
 
