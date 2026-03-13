@@ -49,7 +49,7 @@ export default function LoginForm() {
                     style={{
                         fontSize: '14px',
                         color: '#fff',
-                        background: '#ff4d4f',
+                        background: 'DodgerBlue',
                         padding: '8px 15px',
                         borderRadius: '8px',
                         marginTop: '10px',
@@ -58,8 +58,8 @@ export default function LoginForm() {
                         display: 'inline-block'
                     }}
                 >
-                    [여기를 눌러 v5로 업데이트] <br />
-                    현재 버전: 26.03.13.v5
+                    [여기를 눌러 v7로 업데이트] <br />
+                    현재 버전: 2026.03.13-v7
                 </div>
             </header>
 
