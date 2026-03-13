@@ -23,7 +23,12 @@ export async function uploadExcelAction(formData: FormData) {
         const buffer = Buffer.from(bytes);
 
         // 2. XLSX 라이브러리를 사용해 파일을 읽습니다.
-        const workbook = XLSX.read(buffer, { type: 'buffer' });
+        // CSV 파일의 경우 한국어 윈도우 인코딩(CP949)인 경우가 많으므로 인코딩을 지정합니다.
+        const isCsv = file.name.toLowerCase().endsWith('.csv');
+        const workbook = XLSX.read(buffer, {
+            type: 'buffer',
+            codepage: isCsv ? 949 : undefined
+        });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const data = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
