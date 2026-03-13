@@ -94,19 +94,25 @@ export default function MemberSearch() {
                                         </div>
 
                                         {/* 사찰 주소: 그리드 밖으로 빼서 가로 전체 너비 사용 */}
-                                        <div style={{ borderTop: '1px solid #f9f9f9', marginTop: '15px', paddingTop: '10px' }}>
-                                            <div style={{ color: '#888', fontSize: '18px', marginBottom: '5px' }}>사찰 주소</div>
+                                        <div style={{ borderTop: '2px solid var(--accent-primary)', marginTop: '20px', paddingTop: '15px' }}>
+                                            <div style={{ color: '#888', fontSize: '18px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                                                <span>사찰 주소</span>
+                                                <span style={{ fontSize: '12px', opacity: 0.5 }}>v15.2</span>
+                                            </div>
                                             <div style={{
                                                 fontSize: '22px',
-                                                lineHeight: '1.4',
+                                                lineHeight: '1.5',
                                                 color: '#333',
                                                 wordBreak: 'break-all',
                                                 overflowWrap: 'anywhere',
                                                 whiteSpace: 'normal',
                                                 display: 'block',
-                                                backgroundColor: '#fdfdfd',
-                                                padding: '10px',
-                                                borderRadius: '8px'
+                                                backgroundColor: '#fffbcc',
+                                                padding: '12px',
+                                                borderRadius: '8px',
+                                                width: '100%',
+                                                boxSizing: 'border-box',
+                                                border: '1px solid #ffe58f'
                                             }}>
                                                 {member.templeAddress ? (
                                                     <>

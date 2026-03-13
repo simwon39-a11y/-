@@ -209,7 +209,7 @@ export default function DashboardClient({
                 </p>
                 <div
                     onClick={() => {
-                        if (confirm('v15 버전으로 즉시 업데이트하시겠습니까?')) {
+                        if (confirm('v15.2 버전으로 즉시 업데이트하시겠습니까?')) {
                             if ('serviceWorker' in navigator) {
                                 navigator.serviceWorker.getRegistrations().then(registrations => {
                                     for (let registration of registrations) {
@@ -235,8 +235,8 @@ export default function DashboardClient({
                         marginBottom: '10px'
                     }}
                 >
-                    [여기를 눌러 v15 업데이트] <br />
-                    현재 버전: 2026.03.13-v15
+                    [여기를 눌러 v15.2 업데이트] <br />
+                    현재 버전: 2026.03.13-v15.2
                 </div>
 
                 {isSubscribed === false && (
