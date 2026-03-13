@@ -74,9 +74,27 @@ export default function AdminUpload() {
                         {isPending ? '등록 중...' : '데이터 등록하기'}
                     </button>
 
-                    {result?.success && (
-                        <div style={{ marginTop: 'var(--spacing-md)', padding: '15px', background: '#e8f5e9', color: '#2e7d32', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
-                            총 {result.count}명의 회원이 성공적으로 등록되었습니다!
+                    {result && (
+                        <div style={{
+                            marginTop: 'var(--spacing-md)',
+                            padding: '15px',
+                            background: result.success && result.count > 0 ? '#e8f5e9' : '#ffebee',
+                            color: result.success && result.count > 0 ? '#2e7d32' : '#c62828',
+                            borderRadius: '8px',
+                            textAlign: 'center',
+                            fontWeight: 'bold'
+                        }}>
+                            {result.success && result.count > 0 ? (
+                                `총 ${result.count}명의 회원이 성공적으로 등록되었습니다!`
+                            ) : (
+                                <>
+                                    등록된 회원이 0명입니다.<br />
+                                    <span style={{ fontSize: '14px', fontWeight: 'normal' }}>
+                                        엑셀의 첫 번째 칸 제목이 '성함' 또는 '이름'인지, <br />
+                                        두 번째 칸 제목이 '핸드폰' 또는 '전화번호'인지 확인해 주세요.
+                                    </span>
+                                </>
+                            )}
                         </div>
                     )}
                 </section>
