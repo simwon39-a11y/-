@@ -4,6 +4,7 @@ import { useState, useEffect, useTransition, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getMessagesAction, sendMessageAction, getUserInfoAction, getChatListAction } from './actions';
+import { searchMembersAction } from '@/app/search/actions';
 import { markChatAsReadAction } from '@/app/api/unread/actions';
 import { refreshAppBadge } from '@/lib/badgeClient';
 
@@ -19,6 +20,9 @@ function ChatContent() {
     const [isPending, startTransition] = useTransition();
     const [user, setUser] = useState<any>(null);
     const [otherUser, setOtherUser] = useState<any>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // 새 메시지가 오거나 방이 바뀌면 하단으로 스크롤
@@ -73,8 +77,28 @@ function ChatContent() {
         });
     };
 
+    const handleSearch = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        setIsSearching(true);
+        try {
+            const results = await searchMembersAction(searchQuery);
+            setSearchResults(results);
+        } catch (error) {
+            console.error('Search error:', error);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
     // 대화 목록 화면
     if (!otherId) {
+        const recentChats = chatList.slice(0, 3);
+
         return (
             <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
                 <header style={{ padding: 'var(--spacing-md)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white' }}>
@@ -83,7 +107,8 @@ function ChatContent() {
                 </header>
 
                 <div style={{ flex: 1, padding: '10px' }}>
-                    {chatList.length > 0 ? chatList.map((chat) => (
+                    <h2 style={{ fontSize: '16px', color: '#666', marginBottom: '10px', paddingLeft: '5px' }}>최근 대화 (최대 3개)</h2>
+                    {recentChats.length > 0 ? recentChats.map((chat) => (
                         <Link key={chat.user.id} href={`/chat?to=${chat.user.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                             <div className="card" style={{ marginBottom: '10px', padding: '15px', display: 'flex', alignItems: 'center', gap: '15px', borderLeft: chat.isRead ? '1px solid var(--border-color)' : '4px solid red' }}>
                                 <div style={{ flex: 1 }}>
@@ -98,15 +123,43 @@ function ChatContent() {
                             </div>
                         </Link>
                     )) : (
-                        <div style={{ textAlign: 'center', marginTop: '100px' }}>
-                            <p style={{ color: '#888' }}>대화 내용이 없습니다.</p>
-                            <Link href="/search" className="btn btn-primary" style={{ display: 'inline-block', marginTop: '20px', textDecoration: 'none' }}>회원 검색하여 대화하기</Link>
+                        <div style={{ textAlign: 'center', padding: '20px', backgroundColor: 'white', borderRadius: '10px', marginBottom: '20px' }}>
+                            <p style={{ color: '#888' }}>최근 대화 내용이 없습니다.</p>
                         </div>
                     )}
-                </div>
 
-                <div style={{ padding: '20px', textAlign: 'center' }}>
-                    <Link href="/search" className="btn btn-secondary" style={{ textDecoration: 'none' }}>🔍 새 대화 시작하기</Link>
+                    {/* 상대방 검색 영역 */}
+                    <div style={{ marginTop: '30px', padding: '0 5px' }}>
+                        <h2 style={{ fontSize: '16px', color: '#666', marginBottom: '10px' }}>🔍 새로운 대화 상대 찾기</h2>
+                        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', marginBottom: '15px' }}>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="성함, 법명, 사찰명 검색"
+                                style={{ flex: 1, padding: '12px', fontSize: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                            />
+                            <button type="submit" className="btn btn-primary" style={{ padding: '0 15px' }} disabled={isSearching}>
+                                {isSearching ? '...' : '검색'}
+                            </button>
+                        </form>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {searchResults.length > 0 ? searchResults.map((result) => (
+                                <Link key={result.id} href={`/chat?to=${result.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    <div className="card" style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '4px solid var(--accent-primary)' }}>
+                                        <div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '17px' }}>{result.name} ({result.buddhistName || '법명없음'})</div>
+                                            <div style={{ fontSize: '13px', color: '#666' }}>{result.temple || '사찰 미지정'}</div>
+                                        </div>
+                                        <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold', fontSize: '14px' }}>대화하기 &gt;</span>
+                                    </div>
+                                </Link>
+                            )) : searchQuery && !isSearching && (
+                                <p style={{ textAlign: 'center', color: '#999', padding: '20px' }}>검색 결과가 없습니다.</p>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </main>
         );
