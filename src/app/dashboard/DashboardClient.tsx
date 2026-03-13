@@ -187,7 +187,7 @@ export default function DashboardClient({
                     }}
                     style={{ fontSize: '10px', color: '#ccc', marginTop: '2px', cursor: 'pointer', textDecoration: 'underline' }}
                 >
-                    버전: 26.03.13.1200 (강제 갱신 클릭)
+                    버전: 26.03.13.v4 (최신 업데이트)
                 </div>
 
                 {isSubscribed === false && (
@@ -401,7 +401,7 @@ export default function DashboardClient({
                                 await clearAllSubscriptionsAction();
                                 localStorage.clear();
                                 document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                                alert('서버와 기기 초기화 완료! 이제 앱을 종료하고 바탕화면 아이콘을 삭제한 뒤, 새로고침을 여러 번 해서 1200 버전이 나오면 그때 다시 설치해 주세요.');
+                                alert('서버와 기기 초기화 완료! 이제 새로고침을 여러 번 해서 v4 버전이 나오면 그때 다시 사용해 주세요.');
                                 window.location.reload();
                             }
                         }}

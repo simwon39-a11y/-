@@ -35,7 +35,7 @@ export default function LoginForm() {
                 <h1 style={{ color: 'var(--accent-primary)' }}>종무 소통 시스템</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>성함과 전화번호를 입력해 주세요</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.13.1200 (최신)
+                    버전: 26.03.13.v4 (최신)
                 </div>
             </header>
 

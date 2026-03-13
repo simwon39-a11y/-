@@ -175,7 +175,7 @@ export default function DashboardClient({
                     }}
                     style={{ fontSize: '10px', color: '#ccc', marginTop: '2px', cursor: 'pointer', textDecoration: 'underline' }}
                 >
-                    버전: 26.03.13.1200 (강제 갱신 클릭)
+                    버전: 26.03.13.v4 (최신 업데이트)
                 </div>
 
                 {isSubscribed === false && (
