@@ -30,7 +30,7 @@ export default async function Home() {
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 for (let registration of registrations) await registration.unregister();
               }
-              window.location.reload(true as any);
+              window.location.reload();
             }
           }}
           style={{
