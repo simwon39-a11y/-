@@ -175,19 +175,31 @@ export default function DashboardClient({
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
                 <div
                     onClick={async () => {
-                        if (confirm('최신 버전을 강제로 불러오기 위해 캐시를 완전히 초기화하시겠습니까? (성공 시 다시 로그인해야 할 수 있습니다)')) {
+                        if (confirm('최신 버전을 강제로 불러오기 위해 캐시를 완전히 초기화하시겠습니까?')) {
                             const names = await caches.keys();
                             for (let name of names) await caches.delete(name);
                             if ('serviceWorker' in navigator) {
                                 const regs = await navigator.serviceWorker.getRegistrations();
-                                for (let reg of regs) await reg.unregister();
+                                for (let r of regs) await r.unregister();
                             }
                             window.location.reload();
                         }
                     }}
-                    style={{ fontSize: '10px', color: '#ccc', marginTop: '2px', cursor: 'pointer', textDecoration: 'underline' }}
+                    style={{
+                        fontSize: '14px',
+                        color: '#fff',
+                        background: '#ff4d4f',
+                        padding: '8px 15px',
+                        borderRadius: '8px',
+                        marginTop: '10px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        display: 'inline-block',
+                        marginBottom: '10px'
+                    }}
                 >
-                    버전: 26.03.13.v4 (최신 업데이트)
+                    [여기를 눌러 v5로 업데이트] <br />
+                    현재 버전: 26.03.13.v5
                 </div>
 
                 {isSubscribed === false && (

@@ -34,8 +34,32 @@ export default function LoginForm() {
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                 <h1 style={{ color: 'var(--accent-primary)' }}>종무 소통 시스템</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>성함과 전화번호를 입력해 주세요</p>
-                <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.13.v4 (최신)
+                <div
+                    onClick={async () => {
+                        if (confirm('최신 버전을 강제로 불러오기 위해 캐시를 완전히 초기화하시겠습니까?')) {
+                            const names = await caches.keys();
+                            for (let name of names) await caches.delete(name);
+                            if ('serviceWorker' in navigator) {
+                                const regs = await navigator.serviceWorker.getRegistrations();
+                                for (let r of regs) await r.unregister();
+                            }
+                            window.location.reload();
+                        }
+                    }}
+                    style={{
+                        fontSize: '14px',
+                        color: '#fff',
+                        background: '#ff4d4f',
+                        padding: '8px 15px',
+                        borderRadius: '8px',
+                        marginTop: '10px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        display: 'inline-block'
+                    }}
+                >
+                    [여기를 눌러 v5로 업데이트] <br />
+                    현재 버전: 26.03.13.v5
                 </div>
             </header>
 
