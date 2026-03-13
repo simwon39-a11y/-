@@ -5,8 +5,7 @@ import db from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
 /**
- * 관리자가 업로드한 엑셀 파일을 읽어서 회원으로 등록하는 '서버 액션'입니다.
- * v6: 정밀 진단 데이터 반환 및 안전성 최강화
+ * v8: 초정밀 제목 매핑 및 인코딩 완전 정복
  */
 export async function uploadExcelAction(formData: FormData) {
     const startTime = Date.now();
@@ -24,15 +23,13 @@ export async function uploadExcelAction(formData: FormData) {
 
         let workbook;
         if (fileName.endsWith('.csv')) {
-            // 1. EUC-KR 시도
             const eucDecoder = new TextDecoder('euc-kr');
             const eucString = eucDecoder.decode(uint8Array);
 
-            // 한글 포함 여부로 판단 (제목에 '성명'이나 '이름'이 깨지지 않고 들었는지)
-            if (eucString.includes('성명') || eucString.includes('이름') || eucString.includes('전화')) {
+            // 한글 포함 여부를 좀 더 넓게 체크
+            if (eucString.includes('성명') || eucString.includes('이름') || eucString.includes('전화') || eucString.includes('핸드폰')) {
                 workbook = XLSX.read(eucString, { type: 'string' });
             } else {
-                // 2. UTF-8 시도
                 const utfDecoder = new TextDecoder('utf-8');
                 const utfString = utfDecoder.decode(uint8Array);
                 workbook = XLSX.read(utfString, { type: 'string' });
@@ -46,17 +43,20 @@ export async function uploadExcelAction(formData: FormData) {
         const data = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
         if (!data || data.length === 0) {
-            return { success: false, message: '서버가 파일을 읽었으나 내용이 비어있습니다. (파일 형식을 확인해주세요)', count: 0 };
+            return { success: false, message: '파일의 내용을 읽어낼 수 없습니다. (빈 파일이거나 형식이 잘못됨)', count: 0 };
         }
 
         const rows = data as any[];
         let savedCount = 0;
         let isTimedOut = false;
 
-        // 진단용 데이터 (첫 2줄의 제목과 내용)
-        const sampleRows = rows.slice(0, 2).map(r => {
+        // 진단용 데이터 (원본 키를 보존하여 반환)
+        const sampleRows = rows.slice(0, 3).map(r => {
             const entry: any = {};
-            Object.keys(r).forEach(k => entry[k.substring(0, 20)] = String(r[k]).substring(0, 20));
+            Object.keys(r).forEach(k => {
+                const cleanKey = k.toString().trim().substring(0, 20);
+                entry[cleanKey] = String(r[k]).substring(0, 30);
+            });
             return entry;
         });
 
@@ -66,52 +66,65 @@ export async function uploadExcelAction(formData: FormData) {
                 break;
             }
 
+            // 행 데이터 정규화 (키와 값 모두 트림)
             const normalizedRow: any = {};
             Object.keys(row).forEach(key => {
-                normalizedRow[key.toString().trim()] = String(row[key]).trim();
+                const cleanKey = key.toString().replace(/\s/g, '').trim();
+                normalizedRow[cleanKey] = String(row[key]).trim();
             });
 
-            const findByKey = (keywords: string[]) => {
-                const key = Object.keys(normalizedRow).find(k =>
-                    keywords.some(kw => k.includes(kw))
+            const findValue = (keywords: string[]) => {
+                const foundKey = Object.keys(normalizedRow).find(k =>
+                    keywords.some(kw => k.includes(kw) || kw.includes(k)) // 상호 포함 체크
                 );
-                return key ? normalizedRow[key] : null;
+                return foundKey ? normalizedRow[foundKey] : null;
             };
 
-            let name = findByKey(['성명', '성함', '이름', '성 명', '이 름']);
-            let phone = findByKey(['핸드폰', '전화번호', '연락처', '휴대폰', '번호', '연락', '폰']);
+            let name = findValue(['성명', '성함', '이름', '이 름', '성 명', '고객명', '회원명']);
+            let phone = findValue(['핸드폰', '전화번호', '연락처', '휴대폰', '번호', '연락', '폰', '전화', 'H.P', 'HP']);
 
-            // 내용 기반 자동 감지 (중요)
-            if (!phone || !name) {
-                Object.keys(normalizedRow).forEach(key => {
-                    const val = normalizedRow[key].replace(/-/g, '').replace(/\s/g, '');
-                    if (!phone && val.startsWith('01') && val.length >= 9 && val.length <= 11 && /^\d+$/.test(val)) {
-                        phone = normalizedRow[key];
+            // 데이터 기반 강제 추적 (제목이 깨졌을 경우 대비)
+            if (!name || !phone) {
+                for (const k of Object.keys(normalizedRow)) {
+                    const val = normalizedRow[k];
+                    const cleanVal = val.replace(/-/g, '').replace(/\s/g, '');
+
+                    // 전화번호 패턴 감지 (01로 시작하는 9~11자리 숫자)
+                    if (!phone && cleanVal.startsWith('01') && cleanVal.length >= 9 && cleanVal.length <= 11 && /^\d+$/.test(cleanVal)) {
+                        phone = val;
                     }
-                    if (!name && /^[가-힣]{2,5}$/.test(normalizedRow[key]) && !key.includes('법명') && !key.includes('사찰')) {
-                        name = normalizedRow[key];
+                    // 이름 패턴 감지 (가장 유력한 칸을 이름으로 지정)
+                    if (!name && /^[가-힣]{2,4}$/.test(val)) {
+                        // 법명, 사찰, 직책 등이 아닌 경우만 이름으로 취급
+                        if (!k.includes('법명') && !k.includes('사찰') && !k.includes('직책') && !k.includes('신분') && !k.includes('법호')) {
+                            name = val;
+                        }
                     }
-                });
+                }
             }
 
             if (name && phone) {
                 const cleanPhone = phone.replace(/-/g, '').replace(/\s/g, '');
                 if (cleanPhone.length >= 9) {
-                    await db.user.upsert({
-                        where: { phone: cleanPhone },
-                        update: {
-                            name: name,
-                            buddhistName: findByKey(['법명', '불명', '법 명']) || '',
-                            temple: findByKey(['소속사찰', '사찰', '사찰명']) || '',
-                        },
-                        create: {
-                            name: name,
-                            phone: cleanPhone,
-                            buddhistName: findByKey(['법명', '불명', '법 명']) || '',
-                            temple: findByKey(['소속사찰', '사찰', '사찰명']) || '',
-                        },
-                    });
-                    savedCount++;
+                    try {
+                        await db.user.upsert({
+                            where: { phone: cleanPhone },
+                            update: {
+                                name: name,
+                                buddhistName: findValue(['법명', '불명']) || '',
+                                temple: findValue(['소속사찰', '사찰', '사찰명']) || '',
+                            },
+                            create: {
+                                name: name,
+                                phone: cleanPhone,
+                                buddhistName: findValue(['법명', '불명']) || '',
+                                temple: findValue(['소속사찰', '사찰', '사찰명']) || '',
+                            },
+                        });
+                        savedCount++;
+                    } catch (e) {
+                        console.error('Upsert Error:', e);
+                    }
                 }
             }
         }
@@ -121,10 +134,10 @@ export async function uploadExcelAction(formData: FormData) {
             success: true,
             count: savedCount,
             isPartial: isTimedOut,
-            debugInfo: sampleRows, // 진단 데이터
-            message: savedCount === 0 ? '이름이나 전화번호 열을 찾지 못했습니다. 아래 내용을 확인해주세요.' : '등록 완료!'
+            debugInfo: sampleRows,
+            message: savedCount === 0 ? '이름이나 전화번호 열을 찾지 못했습니다. 파일의 열 제목을 확인해 주세요.' : `${savedCount}명의 정보를 성공적으로 등록/업데이트했습니다.`
         };
     } catch (error: any) {
-        return { success: false, message: `서버 오류: ${error.message}`, count: 0 };
+        return { success: false, message: `서버 오류 발생: ${error.message}`, count: 0 };
     }
 }
