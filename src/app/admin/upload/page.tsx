@@ -7,144 +7,100 @@ import AdminGuard from '@/components/AdminGuard';
 
 export default function AdminUpload() {
     const [file, setFile] = useState<File | null>(null);
+    const [result, setResult] = useState<{ success: boolean; message: string; count: number; debugInfo?: any[] } | null>(null);
     const [isPending, startTransition] = useTransition();
-    const [result, setResult] = useState<{
-        success: boolean;
-        count: number;
-        totalInFile?: number;
-        isPartial?: boolean;
-        message?: string;
-        detectedHeaders?: string[]
-    } | null>(null);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
-            setResult(null);
-        }
-    };
-
-    const handleUpload = async () => {
+    const handleUpload = async (e: React.FormEvent) => {
+        e.preventDefault();
         if (!file) return;
 
         const formData = new FormData();
         formData.append('excel-file', file);
 
         startTransition(async () => {
-            try {
-                const res = await uploadExcelAction(formData);
-                setResult(res);
-            } catch (error: any) {
-                console.error('클라이언트 업로드 에러:', error);
-                setResult({
-                    success: false,
-                    count: 0,
-                    message: `통신 장애가 발생했습니다: ${error.message || '인터넷 연결을 확인해주세요.'}`
-                });
-            }
+            const res = await uploadExcelAction(formData);
+            setResult(res);
         });
     };
 
     return (
         <AdminGuard>
-            <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
-                <header style={{ marginBottom: 'var(--spacing-lg)' }}>
-                    <Link href="/" style={{ textDecoration: 'none', color: 'var(--text-secondary)', fontSize: '18px' }}>
-                        ← 처음으로 돌아가기
-                    </Link>
-                    <h1 style={{ marginTop: 'var(--spacing-sm)', color: 'var(--accent-primary)' }}>
-                        엑셀 자료 등록
-                    </h1>
+            <main style={{ padding: 'var(--spacing-md)', maxWidth: '800px', margin: '0 auto' }}>
+                <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
+                    <h1 style={{ color: 'var(--accent-primary)' }}>회원 명단 대량 등록</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>엑셀(.xlsx) 또는 CSV 파일을 업로드해 주세요.</p>
                 </header>
 
                 <section className="card">
-                    <h2 style={{ marginBottom: 'var(--spacing-sm)' }}>1. 엑셀 파일 선택</h2>
-                    <p style={{ marginBottom: 'var(--spacing-md)', fontSize: '18px' }}>
-                        준비하신 '회원명단' 엑셀 파일을 아래 버튼을 눌러 선택해 주세요.
-                    </p>
-
-                    <input
-                        type="file"
-                        name="excel-file"
-                        accept=".xlsx, .xls"
-                        onChange={handleFileChange}
-                        style={{ marginBottom: 'var(--spacing-md)', display: 'block', padding: '10px', width: '100%', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                    />
-
-                    {file && (
-                        <div style={{ marginBottom: 'var(--spacing-md)', padding: '10px', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
-                            선택된 파일: <strong>{file.name}</strong>
+                    <form onSubmit={handleUpload}>
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>파일 선택</label>
+                            <input
+                                type="file"
+                                accept=".xlsx, .xls, .csv"
+                                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}
+                            />
                         </div>
-                    )}
-
-                    <button
-                        onClick={handleUpload}
-                        className="btn btn-primary"
-                        style={{ width: '100%', opacity: file ? 1 : 0.5 }}
-                        disabled={!file || isPending}
-                    >
-                        {isPending ? '등록 중 (잠시만 기다려주세요)...' : '데이터 등록하기'}
-                    </button>
+                        <button
+                            type="submit"
+                            disabled={!file || isPending}
+                            className="btn btn-primary"
+                            style={{ width: '100%', height: '50px', fontSize: '18px' }}
+                        >
+                            {isPending ? '등록 중...' : '업로드 시작'}
+                        </button>
+                    </form>
 
                     {result && (
                         <div style={{
-                            marginTop: 'var(--spacing-md)',
-                            padding: '15px',
-                            background: result.success && result.count > 0 ? (result.isPartial ? '#fff3e0' : '#e8f5e9') : '#ffebee',
-                            color: result.success && result.count > 0 ? (result.isPartial ? '#e65100' : '#2e7d32') : '#c62828',
-                            borderRadius: '8px',
-                            textAlign: 'center',
-                            fontWeight: 'bold'
+                            marginTop: '20px',
+                            padding: '20px',
+                            borderRadius: '12px',
+                            backgroundColor: result.success ? '#e8f5e9' : '#ffebee',
+                            color: result.success ? '#2e7d32' : '#c62828',
+                            border: `1px solid ${result.success ? '#a5d6a7' : '#ef9a9a'}`
                         }}>
-                            {result.success && result.count > 0 ? (
-                                <>
-                                    <p>{result.message}</p>
-                                    <p style={{ fontSize: '14px', fontWeight: 'normal', marginTop: '5px' }}>
-                                        (이번 업로드 확인: {result.count}명)
-                                    </p>
-                                    {result.isPartial && (
-                                        <p style={{ fontSize: '13px', fontWeight: 'normal', color: '#ff9800', marginTop: '10px' }}>
-                                            ⚠️ 데이터가 너무 많아 안전을 위해 나누어 등록 중입니다. <br />
-                                            동일한 파일을 한 번 더 업로드하면 남은 인원이 계속 등록됩니다.
-                                        </p>
-                                    )}
-                                </>
-                            ) : (
-                                <div style={{ textAlign: 'left' }}>
-                                    <p style={{ textAlign: 'center', marginBottom: '10px' }}>
-                                        {result.success ? '등록된 회원이 0명입니다.' : '문제가 발생했습니다.'}
-                                    </p>
-                                    {result.message && (
-                                        <div style={{
-                                            background: '#fff',
-                                            padding: '10px',
-                                            borderRadius: '4px',
-                                            fontSize: '13px',
-                                            marginBottom: '10px',
-                                            color: '#d32f2f',
-                                            border: '1px solid #ffcdd2'
-                                        }}>
-                                            <strong>[에러 메시지]</strong><br />
-                                            {result.message}
-                                        </div>
-                                    )}
-                                    <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#666' }}>
-                                        <strong>[진단]</strong> 서버가 읽어낸 엑셀 제목 목록:<br />
-                                        <div style={{ background: '#fff', padding: '5px', borderRadius: '4px', margin: '5px 0', wordBreak: 'break-all' }}>
-                                            {result.detectedHeaders && result.detectedHeaders.length > 0
-                                                ? result.detectedHeaders.join(', ')
-                                                : '제목을 읽지 못했습니다.'}
-                                        </div>
-                                        엑셀의 <strong>첫 줄</strong>에 '성명'과 '핸드폰'이라는 제목이 있는지 확인해 주세요.
-                                    </span>
+                            <h3 style={{ margin: '0 0 10px 0' }}>{result.success ? '결과' : '오류 발성'}</h3>
+                            <p style={{ fontWeight: 'bold', fontSize: '18px' }}>{result.message}</p>
+                            <p>처리된 인원: <strong>{result.count}명</strong></p>
+
+                            {/* 진단 정보 표시 */}
+                            {result.debugInfo && (
+                                <div style={{ marginTop: '20px', padding: '10px', background: '#fff', border: '1px solid #ddd', borderRadius: '8px', overflowX: 'auto' }}>
+                                    <p style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>▼ 서버가 읽어낸 파일 내용 예시 (진단용)</p>
+                                    <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse' }}>
+                                        <thead>
+                                            <tr>
+                                                {Object.keys(result.debugInfo[0] || {}).map(k => (
+                                                    <th key={k} style={{ border: '1px solid #eee', padding: '4px', background: '#f9f9f9' }}>{k}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {result.debugInfo.map((row, i) => (
+                                                <tr key={i}>
+                                                    {Object.values(row).map((v: any, j) => (
+                                                        <td key={j} style={{ border: '1px solid #eee', padding: '4px' }}>{v}</td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             )}
                         </div>
                     )}
                 </section>
 
+                <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                    <Link href="/dashboard" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                        ← 대시보드로 돌아가기
+                    </Link>
+                </div>
+
                 <footer style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', color: '#ccc', fontSize: '12px' }}>
-                    시스템 버전: 2026.03.13-v5 (지능형 자동 등록 적용)
+                    시스템 버전: 2026.03.13-v6 (정밀 진단 모드)
                 </footer>
             </main>
         </AdminGuard >
