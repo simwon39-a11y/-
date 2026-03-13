@@ -99,7 +99,7 @@ export default function AdminUpload() {
                 </div>
 
                 <footer style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', color: '#ccc', fontSize: '12px' }}>
-                    시스템 버전: 2026.03.13-v6 (정밀 진단 모드)
+                    시스템 버전: 2026.03.13-v8 (지능형 자동 등록 & 파란색 업데이트 버튼)
                 </footer>
             </main>
         </AdminGuard >
