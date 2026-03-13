@@ -61,11 +61,10 @@ export default function AdminUpload() {
                             color: result.success ? '#2e7d32' : '#c62828',
                             border: `1px solid ${result.success ? '#a5d6a7' : '#ef9a9a'}`
                         }}>
-                            <h3 style={{ margin: '0 0 10px 0' }}>{result.success ? '결과' : '오류 발성'}</h3>
+                            <h3 style={{ margin: '0 0 10px 0' }}>{result.success ? '결과' : '오류'}</h3>
                             <p style={{ fontWeight: 'bold', fontSize: '18px' }}>{result.message}</p>
                             <p>처리된 인원: <strong>{result.count}명</strong></p>
 
-                            {/* 진단 정보 표시 */}
                             {result.debugInfo && (
                                 <div style={{ marginTop: '20px', padding: '10px', background: '#fff', border: '1px solid #ddd', borderRadius: '8px', overflowX: 'auto' }}>
                                     <p style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>▼ 서버가 읽어낸 파일 내용 예시 (진단용)</p>
@@ -100,7 +99,7 @@ export default function AdminUpload() {
                 </div>
 
                 <footer style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', color: '#ccc', fontSize: '12px' }}>
-                    시스템 버전: 2026.03.13-v6 (정밀 진단 모드)
+                    시스템 버전: 2026.03.13-v7 (지능형 자동 등록 & 파란색 업데이트 버튼)
                 </footer>
             </main>
         </AdminGuard >

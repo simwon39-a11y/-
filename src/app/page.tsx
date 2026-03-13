@@ -36,18 +36,18 @@ export default async function Home() {
           style={{
             fontSize: '18px',
             color: '#fff',
-            background: '#ff4d4f',
+            background: 'DodgerBlue',
             padding: '10px 20px',
             borderRadius: '10px',
             marginTop: '15px',
             cursor: 'pointer',
             fontWeight: 'bold',
             display: 'inline-block',
-            boxShadow: '0 4px 10px rgba(255, 77, 79, 0.3)'
+            boxShadow: '0 4px 10px rgba(30, 144, 255, 0.3)'
           }}
         >
-          [ 여기를 눌러 업데이트 완료하기 ] <br />
-          현재 버전: 26.03.13.v5
+          [ 여기를 눌러 v7 업데이트 완료 ] <br />
+          현재 버전: 2026.03.13-v7
         </div>
       </header>
 
