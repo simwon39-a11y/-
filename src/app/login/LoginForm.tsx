@@ -58,8 +58,8 @@ export default function LoginForm() {
                         display: 'inline-block'
                     }}
                 >
-                    [여기를 눌러 v7로 업데이트] <br />
-                    현재 버전: 2026.03.13-v7
+                    [여기를 눌러 v8로 업데이트] <br />
+                    현재 버전: 2026.03.13-v8
                 </div>
             </header>
 

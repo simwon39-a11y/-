@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "종무 소통 시스템",
   description: "사찰 종무 소통 및 회원 관리 시스템",
-  manifest: "/manifest.json?v=26.03.13.v7",
+  manifest: "/manifest.json?v=26.03.13.v8",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -41,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning>
       <head>
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -71,7 +71,7 @@ export default function RootLayout({
 
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  const swUrl = '/sw.js?v=26.03.13.v7';
+                  const swUrl = '/sw.js?v=26.03.13.v8';
                   navigator.serviceWorker.register(swUrl).then(function(registration) {
                     console.log('SW registered in 종무관리 with timestamp:', swUrl);
                     
