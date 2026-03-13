@@ -23,13 +23,31 @@ export default async function Home() {
         </p>
         <div
           onClick={async () => {
-            const names = await caches.keys();
-            for (let name of names) await caches.delete(name);
-            window.location.reload();
+            if (confirm('최신 버전으로 업데이트하기 위해 캐시를 삭제하고 다시 불러오시겠습니까?')) {
+              const names = await caches.keys();
+              for (let name of names) await caches.delete(name);
+              if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) await registration.unregister();
+              }
+              window.location.reload(true as any);
+            }
           }}
-          style={{ fontSize: '10px', color: '#ccc', marginTop: '5px', cursor: 'pointer' }}
+          style={{
+            fontSize: '18px',
+            color: '#fff',
+            background: '#ff4d4f',
+            padding: '10px 20px',
+            borderRadius: '10px',
+            marginTop: '15px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            display: 'inline-block',
+            boxShadow: '0 4px 10px rgba(255, 77, 79, 0.3)'
+          }}
         >
-          버전: 26.03.13.v4 (최신 업데이트 완료)
+          [ 여기를 눌러 업데이트 완료하기 ] <br />
+          현재 버전: 26.03.13.v4
         </div>
       </header>
 
