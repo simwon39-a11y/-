@@ -114,7 +114,7 @@ export default function AdminUpload() {
                 </div>
 
                 <footer style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', color: '#ccc', fontSize: '12px' }}>
-                    시스템 버전: 2026.03.13-v13 (통합 배포 완료)
+                    시스템 버전: 2026.03.13-v14 (전역 버전 통일 완료)
                 </footer>
             </main>
         </AdminGuard >

@@ -1,4 +1,4 @@
-// Version: 2026.03.13.v13.FINAL
+// Version: 2026.03.13.v14
 
 self.addEventListener('install', function (event) {
     self.skipWaiting();
