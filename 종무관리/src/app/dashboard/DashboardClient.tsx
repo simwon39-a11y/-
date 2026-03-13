@@ -159,10 +159,23 @@ export default function DashboardClient({
             {user && <PushSubscriptionHandler userId={user.id} />}
 
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
-                <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>회원 전용 화면</h1>
+                <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>종무 소통 시스템</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
-                <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.11.2250 (최신)
+                <div
+                    onClick={async () => {
+                        if (confirm('최신 버전을 강제로 불러오기 위해 캐시를 완전히 초기화하시겠습니까? (성공 시 다시 로그인해야 할 수 있습니다)')) {
+                            const names = await caches.keys();
+                            for (let name of names) await caches.delete(name);
+                            if ('serviceWorker' in navigator) {
+                                const regs = await navigator.serviceWorker.getRegistrations();
+                                for (let reg of regs) await reg.unregister();
+                            }
+                            window.location.reload();
+                        }
+                    }}
+                    style={{ fontSize: '10px', color: '#ccc', marginTop: '2px', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                    버전: 26.03.13.1200 (강제 갱신 클릭)
                 </div>
 
                 {isSubscribed === false && (

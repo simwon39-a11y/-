@@ -32,10 +32,10 @@ export default function LoginForm() {
         <main style={{ padding: 'var(--spacing-md)', maxWidth: '600px', margin: '0 auto' }}>
             <InstallPWA />
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
-                <h1 style={{ color: 'var(--accent-primary)' }}>들어 가기</h1>
+                <h1 style={{ color: 'var(--accent-primary)' }}>종무 소통 시스템</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>성함과 전화번호를 입력해 주세요</p>
                 <div style={{ fontSize: '10px', color: '#ccc', marginTop: '2px' }}>
-                    버전: 26.03.12.2350 (최신)
+                    버전: 26.03.13.1200 (최신)
                 </div>
             </header>
 

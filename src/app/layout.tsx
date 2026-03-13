@@ -15,17 +15,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "종무관리 시스템",
-  description: "불교 사찰 회원 및 종무 관리 시스템",
-  manifest: "/manifest.json",
+  title: "종무 소통 시스템",
+  description: "사찰 종무 소통 및 회원 관리 시스템",
+  manifest: "/manifest.json?v=26.03.13.1200",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "종무관리",
+    title: "종무 소통 시스템",
   },
   icons: {
-    icon: '/icons/icon-192x192.png',
-    apple: '/icons/icon-192x192.png',
+    icon: [
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
   },
 };
 
@@ -40,6 +45,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            /* 앱으로 실행 시 노란 박스를 0.1초도 보여주지 않기 위해 최상단에 배치합니다 */
+            @media (display-mode: standalone) {
+              #pwa-install-container { display: none !important; }
+            }
+          `
+        }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -59,23 +74,24 @@ export default function RootLayout({
 
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                  // 파일명 뒤에 현재 시간을 붙여서 브라우저가 매번 새로 받게 만듭니다 (Nuclear Cache Bursting)
+                  const swUrl = '/sw.js?t=' + Date.now();
+                  navigator.serviceWorker.register(swUrl).then(function(registration) {
+                    console.log('SW registered with timestamp:', swUrl);
                     
                     registration.onupdatefound = () => {
                       const installingWorker = registration.installing;
                       if (installingWorker) {
                         installingWorker.onstatechange = () => {
                           if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            // 새로운 서비스 워커가 설치되면 한 번만 새로고침
-                            console.log('New ServiceWorker found, reloading...');
+                            console.log('New version detected through SW, refreshing...');
                             window.location.reload(); 
                           }
                         };
                       }
                     };
                   }).catch(function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
+                    console.log('SW registration error:', err);
                   });
                 });
               }

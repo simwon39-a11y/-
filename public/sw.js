@@ -1,4 +1,12 @@
-// Version: 26.03.11.2290
+// Version: 26.03.13.1200
+
+self.addEventListener('install', function (event) {
+    self.skipWaiting(); // 새 서비스 워커가 발견되는 즉시 대기 없이 설치하게 합니다.
+});
+
+self.addEventListener('activate', function (event) {
+    event.waitUntil(self.clients.claim()); // 즉시 제어권을 갖게 합니다.
+});
 
 self.addEventListener('push', function (event) {
     const data = event.data.json();
@@ -51,9 +59,6 @@ self.addEventListener('push', function (event) {
     );
 });
 
-
-
-
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
     event.waitUntil(
@@ -72,7 +77,5 @@ self.addEventListener('activate', (event) => {
 
 // PWA 설치를 위해 반드시 하나 이상의 fetch 핸들러가 필요합니다.
 self.addEventListener('fetch', (event) => {
-    // 지금은 네트워크에서 직접 가져오도록 설정하지만, 
     // 핸들러가 존재하는 것만으로도 PWA 설치 조건을 충족합니다.
 });
-

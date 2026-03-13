@@ -7,8 +7,10 @@ export default function InstallPWA() {
     const [isInstalled, setIsInstalled] = useState(false);
     const [showGuide, setShowGuide] = useState(false);
     const [isKakaotalk, setIsKakaotalk] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const ua = window.navigator.userAgent.toLowerCase();
         if (ua.includes('kakaotalk')) {
             setIsKakaotalk(true);
@@ -78,12 +80,12 @@ export default function InstallPWA() {
         }
     };
 
-    if (isInstalled) return null;
+    if (typeof window === 'undefined' || !mounted || isInstalled) return null;
 
     const isIOS = typeof window !== 'undefined' && (/iPhone|iPad|iPod/.test(window.navigator.userAgent));
 
     return (
-        <div style={{ marginBottom: '25px' }}>
+        <div id="pwa-install-container" style={{ marginBottom: '25px' }}>
             <div style={{
                 padding: '18px',
                 backgroundColor: isKakaotalk ? '#FEE500' : '#FFD700',
@@ -169,6 +171,13 @@ export default function InstallPWA() {
 
             <style dangerouslySetInnerHTML={{
                 __html: `
+                /* PWA로 실행 중일 때는 자바스크립트가 로드되기 전이라도 UI를 완전히 숨깁니다 */
+                @media (display-mode: standalone) {
+                    #pwa-install-container {
+                        display: none !important;
+                    }
+                }
+
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(-10px); }
                     to { opacity: 1; transform: translateY(0); }

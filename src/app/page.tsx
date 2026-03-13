@@ -16,13 +16,20 @@ export default async function Home() {
     <main style={{ padding: 'var(--spacing-md)', width: '100%', margin: '0' }}>
       <header style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{ color: 'var(--accent-primary)', marginBottom: '10px', fontSize: '36px' }}>
-          종무관리 시스템
+          종무 소통 시스템
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '20px' }}>
           경기남부종무원에 오신 것을 환영합니다
         </p>
-        <div style={{ fontSize: '10px', color: '#ccc', marginTop: '5px' }}>
-          버전: 26.03.11.2260 (최신)
+        <div
+          onClick={async () => {
+            const names = await caches.keys();
+            for (let name of names) await caches.delete(name);
+            window.location.reload();
+          }}
+          style={{ fontSize: '10px', color: '#ccc', marginTop: '5px', cursor: 'pointer' }}
+        >
+          버전: 26.03.13.1200 (최신)
         </div>
       </header>
 
