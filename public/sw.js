@@ -1,4 +1,4 @@
-// Version: 26.03.13.1200
+// Version: 26.03.13.v4
 
 self.addEventListener('install', function (event) {
     self.skipWaiting(); // 새 서비스 워커가 발견되는 즉시 대기 없이 설치하게 합니다.

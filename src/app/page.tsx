@@ -29,7 +29,7 @@ export default async function Home() {
           }}
           style={{ fontSize: '10px', color: '#ccc', marginTop: '5px', cursor: 'pointer' }}
         >
-          버전: 26.03.13.1200 (최신)
+          버전: 26.03.13.v4 (최신 업데이트 완료)
         </div>
       </header>
 
