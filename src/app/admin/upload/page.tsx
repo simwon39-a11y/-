@@ -8,7 +8,7 @@ import AdminGuard from '@/components/AdminGuard';
 export default function AdminUpload() {
     const [file, setFile] = useState<File | null>(null);
     const [isPending, startTransition] = useTransition();
-    const [result, setResult] = useState<{ success: boolean; count: number; detectedHeaders?: string[] } | null>(null);
+    const [result, setResult] = useState<{ success: boolean; count: number; message?: string; detectedHeaders?: string[] } | null>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -27,8 +27,11 @@ export default function AdminUpload() {
             try {
                 const res = await uploadExcelAction(formData);
                 setResult(res);
-            } catch (error) {
-                alert('업로드 중 오류가 발생했습니다.');
+                if (!res.success) {
+                    alert(`업로드 실패: ${res.message}`);
+                }
+            } catch (error: any) {
+                alert('업로드 중 통신 오류가 발생했습니다.');
             }
         });
     };
@@ -88,7 +91,14 @@ export default function AdminUpload() {
                                 `총 ${result.count}명의 회원이 성공적으로 등록되었습니다!`
                             ) : (
                                 <div style={{ textAlign: 'left' }}>
-                                    <p style={{ textAlign: 'center', marginBottom: '10px' }}>등록된 회원이 0명입니다.</p>
+                                    <p style={{ textAlign: 'center', marginBottom: '10px' }}>
+                                        {result.success ? '등록된 회원이 0명입니다.' : '업로드에 실패했습니다.'}
+                                    </p>
+                                    {!result.success && result.message && (
+                                        <p style={{ color: '#c62828', fontSize: '14px', marginBottom: '10px', textAlign: 'center' }}>
+                                            오류 내용: {result.message}
+                                        </p>
+                                    )}
                                     <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#666' }}>
                                         <strong>[원인 분석]</strong> 서버가 읽어낸 엑셀 제목은 다음과 같습니다:<br />
                                         <div style={{ background: '#fff', padding: '5px', borderRadius: '4px', margin: '5px 0', wordBreak: 'break-all' }}>
@@ -108,7 +118,7 @@ export default function AdminUpload() {
                 <section style={{ marginTop: 'var(--spacing-lg)' }}>
                     <h3 style={{ marginBottom: 'var(--spacing-sm)' }}>도움말</h3>
                     <ul style={{ paddingLeft: '20px', color: 'var(--text-secondary)' }}>
-                        <li>엑셀의 첫 번째 칸은 '성함', 두 번째 칸은 '전화번호'로 작성해 주세요.</li>
+                        <li>엑셀의 첫 번째 칸은 '성명', 두 번째 칸은 '핸드폰' 형식이면 무조건 인식합니다.</li>
                         <li>파일 선택 후 '데이터 등록하기' 버튼을 꼭 눌러주셔야 합니다.</li>
                     </ul>
                 </section>
