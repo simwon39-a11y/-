@@ -71,7 +71,7 @@ export default function RootLayout({
 
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  const swUrl = '/sw.js?t=' + Date.now();
+                  const swUrl = '/sw.js?v=26.03.13.1200';
                   navigator.serviceWorker.register(swUrl).then(function(registration) {
                     console.log('SW registered in 종무관리 with timestamp:', swUrl);
                     

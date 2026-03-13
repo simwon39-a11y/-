@@ -74,8 +74,8 @@ export default function RootLayout({
 
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  // 파일명 뒤에 현재 시간을 붙여서 브라우저가 매번 새로 받게 만듭니다 (Nuclear Cache Bursting)
-                  const swUrl = '/sw.js?t=' + Date.now();
+                  // 무한 루프 방지를 위해 실시간 타임스탬프 대신 고정 버전을 사용합니다.
+                  const swUrl = '/sw.js?v=26.03.13.1200';
                   navigator.serviceWorker.register(swUrl).then(function(registration) {
                     console.log('SW registered with timestamp:', swUrl);
                     
