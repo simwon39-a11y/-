@@ -94,10 +94,16 @@ export default function MemberSearch() {
 
                                             {/* 사찰 주소 */}
                                             <div style={{ color: '#888' }}>사찰 주소</div>
-                                            <div style={{ fontSize: '13px', lineHeight: '1.5', color: '#555' }}>
+                                            <div style={{
+                                                fontSize: '19px',
+                                                lineHeight: '1.5',
+                                                color: '#555',
+                                                wordBreak: 'break-all',
+                                                overflowWrap: 'anywhere'
+                                            }}>
                                                 {member.templeAddress ? (
                                                     <>
-                                                        {member.postalCode && <span style={{ color: '#888', marginRight: '4px' }}>[{member.postalCode}]</span>}
+                                                        {member.postalCode && <span style={{ color: '#888', marginRight: '6px' }}>[{member.postalCode}]</span>}
                                                         {member.templeAddress}
                                                     </>
                                                 ) : '-'}
