@@ -8,7 +8,14 @@ import AdminGuard from '@/components/AdminGuard';
 export default function AdminUpload() {
     const [file, setFile] = useState<File | null>(null);
     const [isPending, startTransition] = useTransition();
-    const [result, setResult] = useState<{ success: boolean; count: number; message?: string; detectedHeaders?: string[] } | null>(null);
+    const [result, setResult] = useState<{
+        success: boolean;
+        count: number;
+        totalInFile?: number;
+        isPartial?: boolean;
+        message?: string;
+        detectedHeaders?: string[]
+    } | null>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -27,11 +34,13 @@ export default function AdminUpload() {
             try {
                 const res = await uploadExcelAction(formData);
                 setResult(res);
-                if (!res.success) {
-                    alert(`업로드 실패: ${res.message}`);
-                }
             } catch (error: any) {
-                alert('업로드 중 통신 오류가 발생했습니다.');
+                console.error('클라이언트 업로드 에러:', error);
+                setResult({
+                    success: false,
+                    count: 0,
+                    message: `통신 장애가 발생했습니다: ${error.message || '인터넷 연결을 확인해주세요.'}`
+                });
             }
         });
     };
@@ -74,40 +83,59 @@ export default function AdminUpload() {
                         style={{ width: '100%', opacity: file ? 1 : 0.5 }}
                         disabled={!file || isPending}
                     >
-                        {isPending ? '등록 중...' : '데이터 등록하기'}
+                        {isPending ? '등록 중 (잠시만 기다려주세요)...' : '데이터 등록하기'}
                     </button>
 
                     {result && (
                         <div style={{
                             marginTop: 'var(--spacing-md)',
                             padding: '15px',
-                            background: result.success && result.count > 0 ? '#e8f5e9' : '#ffebee',
-                            color: result.success && result.count > 0 ? '#2e7d32' : '#c62828',
+                            background: result.success && result.count > 0 ? (result.isPartial ? '#fff3e0' : '#e8f5e9') : '#ffebee',
+                            color: result.success && result.count > 0 ? (result.isPartial ? '#e65100' : '#2e7d32') : '#c62828',
                             borderRadius: '8px',
                             textAlign: 'center',
                             fontWeight: 'bold'
                         }}>
                             {result.success && result.count > 0 ? (
-                                `총 ${result.count}명의 회원이 성공적으로 등록되었습니다!`
+                                <>
+                                    <p>{result.message}</p>
+                                    <p style={{ fontSize: '14px', fontWeight: 'normal', marginTop: '5px' }}>
+                                        (이번 업로드 확인: {result.count}명)
+                                    </p>
+                                    {result.isPartial && (
+                                        <p style={{ fontSize: '13px', fontWeight: 'normal', color: '#ff9800', marginTop: '10px' }}>
+                                            ⚠️ 데이터가 너무 많아 안전을 위해 나누어 등록 중입니다. <br />
+                                            동일한 파일을 한 번 더 업로드하면 남은 인원이 계속 등록됩니다.
+                                        </p>
+                                    )}
+                                </>
                             ) : (
                                 <div style={{ textAlign: 'left' }}>
                                     <p style={{ textAlign: 'center', marginBottom: '10px' }}>
-                                        {result.success ? '등록된 회원이 0명입니다.' : '업로드에 실패했습니다.'}
+                                        {result.success ? '등록된 회원이 0명입니다.' : '문제가 발생했습니다.'}
                                     </p>
-                                    {!result.success && result.message && (
-                                        <p style={{ color: '#c62828', fontSize: '14px', marginBottom: '10px', textAlign: 'center' }}>
-                                            오류 내용: {result.message}
-                                        </p>
+                                    {result.message && (
+                                        <div style={{
+                                            background: '#fff',
+                                            padding: '10px',
+                                            borderRadius: '4px',
+                                            fontSize: '13px',
+                                            marginBottom: '10px',
+                                            color: '#d32f2f',
+                                            border: '1px solid #ffcdd2'
+                                        }}>
+                                            <strong>[에러 메시지]</strong><br />
+                                            {result.message}
+                                        </div>
                                     )}
                                     <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#666' }}>
-                                        <strong>[원인 분석]</strong> 서버가 읽어낸 엑셀 제목은 다음과 같습니다:<br />
+                                        <strong>[진단]</strong> 서버가 읽어낸 엑셀 제목 목록:<br />
                                         <div style={{ background: '#fff', padding: '5px', borderRadius: '4px', margin: '5px 0', wordBreak: 'break-all' }}>
                                             {result.detectedHeaders && result.detectedHeaders.length > 0
                                                 ? result.detectedHeaders.join(', ')
                                                 : '제목을 읽지 못했습니다.'}
                                         </div>
-                                        제목 중에 <strong>'성명'</strong>(또는 이름)과 <strong>'핸드폰'</strong>(또는 전화번호)이라는 단어가 포함되어 있어야 합니다. <br />
-                                        엑셀의 가장 첫 번째 줄에 이 제목들이 있는지 확인해 주세요.
+                                        엑셀의 <strong>첫 줄</strong>에 '성명'과 '핸드폰'이라는 제목이 있는지 확인해 주세요.
                                     </span>
                                 </div>
                             )}
@@ -115,13 +143,9 @@ export default function AdminUpload() {
                     )}
                 </section>
 
-                <section style={{ marginTop: 'var(--spacing-lg)' }}>
-                    <h3 style={{ marginBottom: 'var(--spacing-sm)' }}>도움말</h3>
-                    <ul style={{ paddingLeft: '20px', color: 'var(--text-secondary)' }}>
-                        <li>엑셀의 첫 번째 칸은 '성명', 두 번째 칸은 '핸드폰' 형식이면 무조건 인식합니다.</li>
-                        <li>파일 선택 후 '데이터 등록하기' 버튼을 꼭 눌러주셔야 합니다.</li>
-                    </ul>
-                </section>
+                <footer style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', color: '#ccc', fontSize: '12px' }}>
+                    시스템 버전: 2026.03.13-v2 (타임아웃 방지 강화)
+                </footer>
             </main>
         </AdminGuard >
     );
