@@ -75,6 +75,12 @@ export default function MemberSearch() {
                                                 {member.buddhistTitle || '-'}{' / '}{member.buddhistRank || '-'}
                                             </div>
 
+                                            {/* 신분 / 직책 */}
+                                            <div style={{ color: '#888' }}>신분 / 직책</div>
+                                            <div style={{ color: '#333', fontWeight: '500' }}>
+                                                {member.status || '-'}{' / '}{member.position || '-'}
+                                            </div>
+
                                             {/* 소속 사찰 */}
                                             <div style={{ color: '#888' }}>소속 사찰</div>
                                             <div style={{ fontWeight: '600', color: '#333' }}>

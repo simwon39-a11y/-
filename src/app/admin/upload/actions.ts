@@ -5,7 +5,7 @@ import db from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
 /**
- * v8: 초정밀 제목 매핑 및 인코딩 완전 정복
+ * v10: 모든 필드(법계, 법호, 직책, 사찰주소 등) 정밀 동기화 엔진
  */
 export async function uploadExcelAction(formData: FormData) {
     const startTime = Date.now();
@@ -25,8 +25,6 @@ export async function uploadExcelAction(formData: FormData) {
         if (fileName.endsWith('.csv')) {
             const eucDecoder = new TextDecoder('euc-kr');
             const eucString = eucDecoder.decode(uint8Array);
-
-            // 한글 포함 여부를 좀 더 넓게 체크
             if (eucString.includes('성명') || eucString.includes('이름') || eucString.includes('전화') || eucString.includes('핸드폰')) {
                 workbook = XLSX.read(eucString, { type: 'string' });
             } else {
@@ -43,14 +41,13 @@ export async function uploadExcelAction(formData: FormData) {
         const data = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
         if (!data || data.length === 0) {
-            return { success: false, message: '파일의 내용을 읽어낼 수 없습니다. (빈 파일이거나 형식이 잘못됨)', count: 0 };
+            return { success: false, message: '파일의 내용을 읽어낼 수 없습니다.', count: 0 };
         }
 
         const rows = data as any[];
         let savedCount = 0;
         let isTimedOut = false;
 
-        // 진단용 데이터 (원본 키를 보존하여 반환)
         const sampleRows = rows.slice(0, 3).map(r => {
             const entry: any = {};
             Object.keys(r).forEach(k => {
@@ -66,7 +63,6 @@ export async function uploadExcelAction(formData: FormData) {
                 break;
             }
 
-            // 행 데이터 정규화 (키와 값 모두 트림)
             const normalizedRow: any = {};
             Object.keys(row).forEach(key => {
                 const cleanKey = key.toString().replace(/\s/g, '').trim();
@@ -75,30 +71,31 @@ export async function uploadExcelAction(formData: FormData) {
 
             const findValue = (keywords: string[]) => {
                 const foundKey = Object.keys(normalizedRow).find(k =>
-                    keywords.some(kw => k.includes(kw) || kw.includes(k)) // 상호 포함 체크
+                    keywords.some(kw => k.includes(kw) || kw.includes(k))
                 );
                 return foundKey ? normalizedRow[foundKey] : null;
             };
 
-            let name = findValue(['성명', '성함', '이름', '이 름', '성 명', '고객명', '회원명']);
-            let phone = findValue(['핸드폰', '전화번호', '연락처', '휴대폰', '번호', '연락', '폰', '전화', 'H.P', 'HP']);
+            let name = findValue(['성명', '성함', '이름', '고객명', '회원명']);
+            let phone = findValue(['핸드폰', '전화번호', '연락처', '휴대폰', '번호', 'H.P', 'HP']);
 
-            // 데이터 기반 강제 추적 (제목이 깨졌을 경우 대비)
-            if (!name || !phone) {
+            // 데이터 보호 패턴 (제목이 이상해도 폰번호 형식은 찾음)
+            if (!phone) {
                 for (const k of Object.keys(normalizedRow)) {
                     const val = normalizedRow[k];
                     const cleanVal = val.replace(/-/g, '').replace(/\s/g, '');
-
-                    // 전화번호 패턴 감지 (01로 시작하는 9~11자리 숫자)
-                    if (!phone && cleanVal.startsWith('01') && cleanVal.length >= 9 && cleanVal.length <= 11 && /^\d+$/.test(cleanVal)) {
+                    if (cleanVal.startsWith('01') && cleanVal.length >= 9 && cleanVal.length <= 11 && /^\d+$/.test(cleanVal)) {
                         phone = val;
+                        break;
                     }
-                    // 이름 패턴 감지 (가장 유력한 칸을 이름으로 지정)
-                    if (!name && /^[가-힣]{2,4}$/.test(val)) {
-                        // 법명, 사찰, 직책 등이 아닌 경우만 이름으로 취급
-                        if (!k.includes('법명') && !k.includes('사찰') && !k.includes('직책') && !k.includes('신분') && !k.includes('법호')) {
-                            name = val;
-                        }
+                }
+            }
+            if (!name) {
+                for (const k of Object.keys(normalizedRow)) {
+                    const val = normalizedRow[k];
+                    if (/^[가-힣]{2,4}$/.test(val) && !k.includes('사찰') && !k.includes('법명') && !k.includes('직책')) {
+                        name = val;
+                        break;
                     }
                 }
             }
@@ -111,14 +108,28 @@ export async function uploadExcelAction(formData: FormData) {
                             where: { phone: cleanPhone },
                             update: {
                                 name: name,
-                                buddhistName: findValue(['법명', '불명']) || '',
-                                temple: findValue(['소속사찰', '사찰', '사찰명']) || '',
+                                buddhistName: findValue(['법명']) || null,
+                                buddhistTitle: findValue(['법호']) || null,
+                                buddhistRank: findValue(['법계']) || null,
+                                status: findValue(['신분']) || null,
+                                position: findValue(['직책']) || null,
+                                temple: findValue(['소속사찰', '사찰명']) || null,
+                                templePosition: findValue(['소속사찰직위', '소속분회']) || null,
+                                postalCode: findValue(['우편번호']) || null,
+                                templeAddress: findValue(['사찰주소', '주소']) || null,
                             },
                             create: {
                                 name: name,
                                 phone: cleanPhone,
-                                buddhistName: findValue(['법명', '불명']) || '',
-                                temple: findValue(['소속사찰', '사찰', '사찰명']) || '',
+                                buddhistName: findValue(['법명']) || null,
+                                buddhistTitle: findValue(['법호']) || null,
+                                buddhistRank: findValue(['법계']) || null,
+                                status: findValue(['신분']) || null,
+                                position: findValue(['직책']) || null,
+                                temple: findValue(['소속사찰', '사찰명']) || null,
+                                templePosition: findValue(['소속사찰직위', '소속분회']) || null,
+                                postalCode: findValue(['우편번호']) || null,
+                                templeAddress: findValue(['사찰주소', '주소']) || null,
                             },
                         });
                         savedCount++;
@@ -135,7 +146,7 @@ export async function uploadExcelAction(formData: FormData) {
             count: savedCount,
             isPartial: isTimedOut,
             debugInfo: sampleRows,
-            message: savedCount === 0 ? '이름이나 전화번호 열을 찾지 못했습니다. 파일의 열 제목을 확인해 주세요.' : `${savedCount}명의 정보를 성공적으로 등록/업데이트했습니다.`
+            message: `${savedCount}명의 정보를 성공적으로 등록/업데이트했습니다.`
         };
     } catch (error: any) {
         return { success: false, message: `서버 오류 발생: ${error.message}`, count: 0 };
