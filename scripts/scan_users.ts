@@ -2,12 +2,14 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('--- SAMPLE DATA (10 USERS) ---');
+    console.log('--- LATEST 10 REGISTERED USERS ---');
     const users = await prisma.user.findMany({
         take: 10,
-        orderBy: { id: 'asc' }
+        orderBy: { createdAt: 'desc' }
     });
-    console.log(JSON.stringify(users, null, 2));
+    users.forEach(u => {
+        console.log(`ID: ${u.id}, Name: ${u.name}, Phone: ${u.phone}, CreatedAt: ${u.createdAt}`);
+    });
 }
 
 main()

@@ -16,11 +16,10 @@ export async function uploadExcelAction(formData: FormData) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // 2. XLSX 라이브러리를 사용해 파일을 읽습니다. (Excel, CSV 모두 지원)
-    // 팁: 한국어 CSV는 주로 CP949(EUC-KR) 형식이므로 인코딩 설정을 고려합니다.
+    // 2. XLSX 라이브러리를 사용해 파일을 읽습니다.
+    // 팁: XLSX는 자동으로 파일 형식을 감지합니다. 
     const workbook = XLSX.read(buffer, {
-        type: 'buffer',
-        codepage: 949 // 한국어 인코딩 대응
+        type: 'buffer'
     });
 
     // 3. 첫 번째 시트(쪽)를 가져옵니다.
@@ -34,6 +33,8 @@ export async function uploadExcelAction(formData: FormData) {
 
     // 5. 한 명씩 우리 데이터베이스(창고)에 넣습니다.
     const rows = data as any[];
+    let savedCount = 0;
+
     for (const row of rows) {
         // 모든 키를 가져와서 공백을 제거한 버전으로 맵을 만듭니다.
         const normalizedRow: any = {};
@@ -86,6 +87,7 @@ export async function uploadExcelAction(formData: FormData) {
                         templeAddress: String(templeAddress).trim()
                     },
                 });
+                savedCount++;
             }
         }
     }
@@ -95,5 +97,5 @@ export async function uploadExcelAction(formData: FormData) {
     revalidatePath('/search'); // 검색 페이지도 갱신
     revalidatePath('/board');
     revalidatePath('/dashboard');
-    return { success: true, count: data.length };
+    return { success: true, count: savedCount };
 }
