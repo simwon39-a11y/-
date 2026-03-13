@@ -46,8 +46,8 @@ export default async function Home() {
             boxShadow: '0 4px 10px rgba(30, 144, 255, 0.3)'
           }}
         >
-          [ 여기를 눌러 v8 업데이트 완료 ] <br />
-          현재 버전: 2026.03.13-v8
+          [ 여기를 눌러 v9 업데이트 완료 ] <br />
+          현재 버전: 2026.03.13-v9
         </div>
       </header>
 

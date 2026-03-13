@@ -28,7 +28,22 @@ export default function AdminUpload() {
             <main style={{ padding: 'var(--spacing-md)', maxWidth: '800px', margin: '0 auto' }}>
                 <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                     <h1 style={{ color: 'var(--accent-primary)' }}>회원 명단 대량 등록</h1>
-                    <p style={{ color: 'var(--text-secondary)' }}>엑셀(.xlsx) 또는 CSV 파일을 업로드해 주세요.</p>
+                    <p style={{ color: 'var(--text-secondary)' }}>당신에게(.xlsx) 또는 CSV 파일을 업로드해 주세요.</p>
+                    <div style={{ marginTop: '10px' }}>
+                        <a
+                            href="/member_template.xlsx"
+                            download
+                            style={{
+                                color: 'DodgerBlue',
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                textDecoration: 'underline',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            [ 여기를 눌러 표준 엑셀 양식 다운로드 ]
+                        </a>
+                    </div>
                 </header>
 
                 <section className="card">
@@ -99,7 +114,7 @@ export default function AdminUpload() {
                 </div>
 
                 <footer style={{ marginTop: 'var(--spacing-xl)', textAlign: 'center', color: '#ccc', fontSize: '12px' }}>
-                    시스템 버전: 2026.03.13-v8 (지능형 자동 등록 & 파란색 업데이트 버튼)
+                    시스템 버전: 2026.03.13-v9 (표준 양식 제공 및 지능형 엔진 강화)
                 </footer>
             </main>
         </AdminGuard >
