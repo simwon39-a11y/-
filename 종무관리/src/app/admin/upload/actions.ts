@@ -57,27 +57,25 @@ export async function uploadExcelAction(formData: FormData) {
             return entry;
         });
 
-        for (const row of rows) {
-            if (Date.now() - startTime > TIMEOUT_LIMIT) {
-                isTimedOut = true;
-                break;
-            }
+        // v15.4: 중복된 전화번호가 있을 경우, 더 정보량이 많은(긴) 데이터를 우선순위로 병합하는 스마트 엔진 도입 (종무관리)
+        const memberMap = new Map<string, any>();
 
+        for (const row of rows) {
             const normalizedRow: any = {};
             Object.keys(row).forEach(key => {
                 const cleanKey = key.toString().replace(/\s/g, '').trim();
                 normalizedRow[cleanKey] = String(row[key]).trim();
             });
 
-            const findValue = (keywords: string[]) => {
-                const foundKey = Object.keys(normalizedRow).find(k =>
+            const findValue = (rowObj: any, keywords: string[]) => {
+                const foundKey = Object.keys(rowObj).find(k =>
                     keywords.some(kw => k.includes(kw) || kw.includes(k))
                 );
-                return foundKey ? normalizedRow[foundKey] : null;
+                return foundKey ? rowObj[foundKey] : null;
             };
 
-            let name = findValue(['성명', '성함', '이름', '고객명', '회원명']);
-            let phone = findValue(['핸드폰', '전화번호', '연락처', '휴대폰', '번호', 'H.P', 'HP']);
+            let name = findValue(normalizedRow, ['성명', '성함', '이름', '고객명', '회원명']);
+            let phone = findValue(normalizedRow, ['핸드폰', '전화번호', '연락처', '휴대폰', '번호', 'H.P', 'HP']);
 
             if (!phone) {
                 for (const k of Object.keys(normalizedRow)) {
@@ -89,53 +87,86 @@ export async function uploadExcelAction(formData: FormData) {
                     }
                 }
             }
-            if (!name) {
-                for (const k of Object.keys(normalizedRow)) {
-                    const val = normalizedRow[k];
-                    if (/^[가-힣]{2,4}$/.test(val) && !k.includes('사찰') && !k.includes('법명') && !k.includes('직책')) {
-                        name = val;
-                        break;
+
+            if (phone) {
+                const cleanPhone = phone.replace(/-/g, '').replace(/\s/g, '');
+                if (cleanPhone.length >= 9) {
+                    const existing = memberMap.get(cleanPhone);
+                    const currentData = {
+                        name: name,
+                        buddhistName: findValue(normalizedRow, ['법명']),
+                        buddhistTitle: findValue(normalizedRow, ['법호']),
+                        buddhistRank: findValue(normalizedRow, ['법계']),
+                        status: findValue(normalizedRow, ['신분']),
+                        position: findValue(normalizedRow, ['직책']),
+                        memberGrade: findValue(normalizedRow, ['회원등급']), // Additional field if any
+                        temple: findValue(normalizedRow, ['소속사찰', '사찰명']),
+                        templePosition: findValue(normalizedRow, ['소속사찰직위', '소속분회']),
+                        postalCode: findValue(normalizedRow, ['우편번호']),
+                        templeAddress: findValue(normalizedRow, ['사찰주소', '주소']),
+                    };
+
+                    if (!existing) {
+                        memberMap.set(cleanPhone, currentData);
+                    } else {
+                        // 스마트 병합
+                        const merged = { ...existing };
+                        (Object.keys(currentData) as Array<keyof typeof currentData>).forEach(key => {
+                            const oldVal = String(existing[key] || '');
+                            const newVal = String(currentData[key] || '');
+
+                            const isNewBetter = (newVal.length > oldVal.length && !newVal.includes('...')) ||
+                                (oldVal.includes('...') && !newVal.includes('...'));
+
+                            if (isNewBetter && newVal) {
+                                merged[key] = currentData[key];
+                            }
+                        });
+                        memberMap.set(cleanPhone, merged);
                     }
                 }
             }
+        }
 
-            if (name && phone) {
-                const cleanPhone = phone.replace(/-/g, '').replace(/\s/g, '');
-                if (cleanPhone.length >= 9) {
-                    try {
-                        await db.user.upsert({
-                            where: { phone: cleanPhone },
-                            update: {
-                                name: name,
-                                buddhistName: findValue(['법명']) || null,
-                                buddhistTitle: findValue(['법호']) || null,
-                                buddhistRank: findValue(['법계']) || null,
-                                status: findValue(['신분']) || null,
-                                position: findValue(['직책']) || null,
-                                temple: findValue(['소속사찰', '사찰명']) || null,
-                                templePosition: findValue(['소속사찰직위', '소속분회']) || null,
-                                postalCode: findValue(['우편번호']) || null,
-                                templeAddress: findValue(['사찰주소', '주소']) || null,
-                            },
-                            create: {
-                                name: name,
-                                phone: cleanPhone,
-                                buddhistName: findValue(['법명']) || null,
-                                buddhistTitle: findValue(['법호']) || null,
-                                buddhistRank: findValue(['법계']) || null,
-                                status: findValue(['신분']) || null,
-                                position: findValue(['직책']) || null,
-                                temple: findValue(['소속사찰', '사찰명']) || null,
-                                templePosition: findValue(['소속사찰직위', '소속분회']) || null,
-                                postalCode: findValue(['우편번호']) || null,
-                                templeAddress: findValue(['사찰주소', '주소']) || null,
-                            },
-                        });
-                        savedCount++;
-                    } catch (e) {
-                        console.error('Upsert Error:', e);
-                    }
-                }
+        // 병합된 최종 데이터를 DB에 저장
+        for (const [cleanPhone, m] of memberMap.entries()) {
+            if (Date.now() - startTime > TIMEOUT_LIMIT) {
+                isTimedOut = true;
+                break;
+            }
+
+            try {
+                await db.user.upsert({
+                    where: { phone: cleanPhone },
+                    update: {
+                        name: m.name || undefined,
+                        buddhistName: m.buddhistName || null,
+                        buddhistTitle: m.buddhistTitle || null,
+                        buddhistRank: m.buddhistRank || null,
+                        status: m.status || null,
+                        position: m.position || null,
+                        temple: m.temple || null,
+                        templePosition: m.templePosition || null,
+                        postalCode: m.postalCode || null,
+                        templeAddress: m.templeAddress || null,
+                    },
+                    create: {
+                        name: m.name || '이름없음',
+                        phone: cleanPhone,
+                        buddhistName: m.buddhistName || null,
+                        buddhistTitle: m.buddhistTitle || null,
+                        buddhistRank: m.buddhistRank || null,
+                        status: m.status || null,
+                        position: m.position || null,
+                        temple: m.temple || null,
+                        templePosition: m.templePosition || null,
+                        postalCode: m.postalCode || null,
+                        templeAddress: m.templeAddress || null,
+                    },
+                });
+                savedCount++;
+            } catch (e) {
+                console.error('Upsert Error:', e);
             }
         }
 
