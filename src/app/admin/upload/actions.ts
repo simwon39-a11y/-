@@ -99,8 +99,10 @@ export async function uploadExcelAction(formData: FormData) {
                         buddhistRank: findValue(normalizedRow, ['법계']),
                         status: findValue(normalizedRow, ['신분']),
                         position: findValue(normalizedRow, ['직책']),
-                        temple: findValue(normalizedRow, ['소속사찰', '사찰명']),
-                        templePosition: findValue(normalizedRow, ['소속사찰직위', '소속분회']),
+                        // 정확한 매칭을 위해 우선 순위를 분리합니다.
+                        // '소속사찰'이 '소속사찰직위'를 잘못 잡아먹지 않도록, 긴 단어를 먼저 찾습니다.
+                        templePosition: findValue(normalizedRow, ['소속사찰직위', '소속분회', '분회']),
+                        temple: findValue(normalizedRow, ['소속사찰', '사찰명', '사찰']),
                         postalCode: findValue(normalizedRow, ['우편번호']),
                         templeAddress: findValue(normalizedRow, ['사찰주소', '주소']),
                     };

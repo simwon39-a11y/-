@@ -10,8 +10,8 @@ export async function GET(req: NextRequest) {
 
         // 엑셀 포맷으로 변환 (한글 헤더)
         const excelData = users.map(u => ({
-            '이름': u.name,
-            '전화번호': u.phone,
+            '이름': u.name || '',
+            '전화번호': u.phone || '',
             '법명': u.buddhistName || '',
             '법호': u.buddhistTitle || '',
             '법계': u.buddhistRank || '',
