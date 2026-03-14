@@ -1,5 +1,5 @@
-// Version: 2026.03.13.v16
-const CACHE_NAME = 'buddhist-member-v16';
+// Version: 2026.03.14.v16.1
+const CACHE_NAME = 'buddhist-member-v16.1';
 
 self.addEventListener('install', function (event) {
     self.skipWaiting(); // 새 서비스 워커가 발견되는 즉시 대기 없이 설치하게 합니다.

@@ -129,46 +129,57 @@ export async function uploadExcelAction(formData: FormData) {
             }
         }
 
-        // 병합된 최종 데이터를 DB에 저장
-        for (const [cleanPhone, m] of memberMap.entries()) {
+        // 병합된 최종 데이터를 DB에 저장 (초고속 병렬 처리 모드)
+        const memberEntries = Array.from(memberMap.entries());
+        const CHUNK_SIZE = 15; // 한 번에 15명씩 묶어서 처리
+
+        for (let i = 0; i < memberEntries.length; i += CHUNK_SIZE) {
             if (Date.now() - startTime > TIMEOUT_LIMIT) {
                 isTimedOut = true;
                 break;
             }
 
-            try {
-                await db.user.upsert({
-                    where: { phone: cleanPhone },
-                    update: {
-                        name: m.name || undefined,
-                        buddhistName: m.buddhistName || null,
-                        buddhistTitle: m.buddhistTitle || null,
-                        buddhistRank: m.buddhistRank || null,
-                        status: m.status || null,
-                        position: m.position || null,
-                        temple: m.temple || null,
-                        templePosition: m.templePosition || null,
-                        postalCode: m.postalCode || null,
-                        templeAddress: m.templeAddress || null,
-                    },
-                    create: {
-                        name: m.name || '이름없음',
-                        phone: cleanPhone,
-                        buddhistName: m.buddhistName || null,
-                        buddhistTitle: m.buddhistTitle || null,
-                        buddhistRank: m.buddhistRank || null,
-                        status: m.status || null,
-                        position: m.position || null,
-                        temple: m.temple || null,
-                        templePosition: m.templePosition || null,
-                        postalCode: m.postalCode || null,
-                        templeAddress: m.templeAddress || null,
-                    },
-                });
-                savedCount++;
-            } catch (e) {
-                console.error('Upsert Error:', e);
-            }
+            const chunk = memberEntries.slice(i, i + CHUNK_SIZE);
+            const promises = chunk.map(async ([cleanPhone, m]) => {
+                try {
+                    await db.user.upsert({
+                        where: { phone: cleanPhone },
+                        update: {
+                            name: m.name || undefined,
+                            buddhistName: m.buddhistName || null,
+                            buddhistTitle: m.buddhistTitle || null,
+                            buddhistRank: m.buddhistRank || null,
+                            status: m.status || null,
+                            position: m.position || null,
+                            temple: m.temple || null,
+                            templePosition: m.templePosition || null,
+                            postalCode: m.postalCode || null,
+                            templeAddress: m.templeAddress || null,
+                        },
+                        create: {
+                            name: m.name || '이름없음',
+                            phone: cleanPhone,
+                            buddhistName: m.buddhistName || null,
+                            buddhistTitle: m.buddhistTitle || null,
+                            buddhistRank: m.buddhistRank || null,
+                            status: m.status || null,
+                            position: m.position || null,
+                            temple: m.temple || null,
+                            templePosition: m.templePosition || null,
+                            postalCode: m.postalCode || null,
+                            templeAddress: m.templeAddress || null,
+                        },
+                    });
+                    return true;
+                } catch (e) {
+                    console.error('Upsert Error on phone ' + cleanPhone + ':', e);
+                    return false;
+                }
+            });
+
+            // 15명의 데이터를 동시에 저장하고 끝날 때까지 대기
+            const results = await Promise.all(promises);
+            savedCount += results.filter(success => success).length;
         }
 
         revalidatePath('/search');
