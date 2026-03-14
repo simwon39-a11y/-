@@ -185,17 +185,29 @@ export async function uploadExcelAction(formData: FormData) {
 
         // v17: 엑셀 파일에 없는 기존 회원 일괄 삭제 (Full Sync)
         const uploadedPhoneNumbers = Array.from(memberMap.keys());
+
+        // 하이픈이 있는 형식(010-XXXX-YYYY)의 변형도 보호 배열에 추가
+        const protectedNumbers = [...uploadedPhoneNumbers];
+        uploadedPhoneNumbers.forEach(phone => {
+            if (phone.length === 11) {
+                protectedNumbers.push(`${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7, 11)}`);
+            } else if (phone.length === 10) {
+                protectedNumbers.push(`${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6, 10)}`);
+            }
+        });
+
         let deletedCount = 0;
         try {
             const deleteResult = await db.user.deleteMany({
                 where: {
                     phone: {
-                        notIn: uploadedPhoneNumbers
+                        notIn: protectedNumbers
                     }
                 }
             });
             deletedCount = deleteResult.count;
         } catch (delError) {
+
             console.error('Delete Missing Users Error:', delError);
         }
 
