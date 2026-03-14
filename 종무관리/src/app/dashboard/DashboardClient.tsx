@@ -189,8 +189,8 @@ export default function DashboardClient({
                         marginBottom: '10px'
                     }}
                 >
-                    [여기를 눌러 v17 업데이트] <br />
-                    현재 버전: 2026.03.14-v17 (최신 엑셀 전체 동기화 시스템 탑재)
+                    [여기를 눌러 v17.1 업데이트] <br />
+                    현재 버전: 2026.03.14-v17.1 (버그 패치 및 전체 동기화 시스템 탑재)
                 </div>
 
                 {isSubscribed === false && (
