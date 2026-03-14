@@ -1,5 +1,5 @@
-// Version: 2026.03.14.v16.1
-const CACHE_NAME = 'buddhist-member-v16.1';
+// Version: 2026.03.14.v17
+const CACHE_NAME = 'buddhist-member-v17';
 
 self.addEventListener('install', function (event) {
     self.skipWaiting();

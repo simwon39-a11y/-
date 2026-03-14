@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const fs = require('fs');
 const prisma = new PrismaClient();
 
 async function main() {
@@ -7,13 +8,15 @@ async function main() {
         select: { id: true, name: true, phone: true }
     });
 
-    console.log(`\n========================================`);
-    console.log(`Total users in DB: ${users.length} 명`);
-    console.log(`========================================\n`);
+    let output = `\n========================================\n`;
+    output += `Total users in DB: ${users.length} 명\n`;
+    output += `========================================\n\n`;
 
     users.forEach(u => {
-        console.log(`이름: ${u.name.padEnd(10, ' ')} | 전화번호: ${u.phone}`);
+        output += `이름: ${u.name.padEnd(10, ' ')} | 전화번호: ${u.phone}\n`;
     });
+
+    fs.writeFileSync('output.txt', output, 'utf8');
 }
 
 main()

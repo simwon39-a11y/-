@@ -27,24 +27,60 @@ export default function AdminUpload() {
         <AdminGuard>
             <main style={{ padding: 'var(--spacing-md)', maxWidth: '800px', margin: '0 auto' }}>
                 <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
-                    <h1 style={{ color: 'var(--accent-primary)' }}>회원 명단 대량 등록</h1>
-                    <p style={{ color: 'var(--text-secondary)' }}>당신에게(.xlsx) 또는 CSV 파일을 업로드해 주세요.</p>
-                    <div style={{ marginTop: '10px' }}>
+                    <h1 style={{ color: 'var(--accent-primary)' }}>전체 회원 동기화 (Full Sync)</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>엑셀 파일 1개로 시스템 전체 회원 목록을 제어합니다.</p>
+                    <div style={{ marginTop: '15px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
                         <a
-                            href="/member_template.xlsx"
-                            download
+                            href="/api/admin/download-members"
+                            className="btn"
                             style={{
-                                color: 'DodgerBlue',
-                                fontSize: '16px',
-                                fontWeight: 'bold',
-                                textDecoration: 'underline',
-                                cursor: 'pointer'
+                                backgroundColor: '#4caf50',
+                                color: 'white',
+                                padding: '10px 15px',
+                                borderRadius: '8px',
+                                textDecoration: 'none',
+                                fontWeight: 'bold'
                             }}
                         >
-                            [ 여기를 눌러 표준 엑셀 양식 다운로드 ]
+                            📥 최신 DB 엑셀 다운로드 (권장)
+                        </a>
+                        <a
+                            href="/member_template.xlsx"
+                            className="btn"
+                            download
+                            style={{
+                                backgroundColor: '#9e9e9e',
+                                color: 'white',
+                                padding: '10px 15px',
+                                borderRadius: '8px',
+                                textDecoration: 'none',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            빈 양식 다운로드
                         </a>
                     </div>
                 </header>
+
+                <div style={{
+                    backgroundColor: '#ffebee',
+                    border: '2px solid #ef5350',
+                    borderRadius: '8px',
+                    padding: '15px',
+                    marginBottom: '20px',
+                    color: '#c62828'
+                }}>
+                    <h3 style={{ margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        🚨 [초강력 덮어쓰기 주의 경고]
+                    </h3>
+                    <p style={{ margin: '0 0 10px 0', fontSize: '14px', lineHeight: '1.5' }}>
+                        본 기능은 <b>'전체 동기화(Full Sync)'</b> 모드로 작동합니다. <br />
+                        업로드하시는 엑셀 파일에 <b>이름과 전화번호가 없는 사람은 시스템에서 즉시 "탈퇴자"로 간주되어 완전히 삭제(관련 게시글 포함)</b>됩니다.
+                    </p>
+                    <p style={{ margin: '0', fontSize: '14px', fontWeight: 'bold' }}>
+                        👉 반드시 전체 인원이 포함된 단 1개의 완성본 엑셀 파일을 업로드해 주세요!
+                    </p>
+                </div>
 
                 <section className="card">
                     <form onSubmit={handleUpload}>

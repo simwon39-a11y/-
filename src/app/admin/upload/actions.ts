@@ -182,13 +182,29 @@ export async function uploadExcelAction(formData: FormData) {
             savedCount += results.filter(success => success).length;
         }
 
+        // v17: 엑셀 파일에 없는 기존 회원 일괄 삭제 (Full Sync)
+        const uploadedPhoneNumbers = Array.from(memberMap.keys());
+        let deletedCount = 0;
+        try {
+            const deleteResult = await db.user.deleteMany({
+                where: {
+                    phone: {
+                        notIn: uploadedPhoneNumbers
+                    }
+                }
+            });
+            deletedCount = deleteResult.count;
+        } catch (delError) {
+            console.error('Delete Missing Users Error:', delError);
+        }
+
         revalidatePath('/search');
         return {
             success: true,
             count: savedCount,
             isPartial: isTimedOut,
             debugInfo: sampleRows,
-            message: `${savedCount}명의 정보를 성공적으로 등록/업데이트했습니다.`
+            message: `${savedCount}명의 정보를 등록/업데이트했습니다. (엑셀에 없는 ${deletedCount}명은 시스템에서 삭제되었습니다.)`
         };
     } catch (error: any) {
         return { success: false, message: `서버 오류 발생: ${error.message}`, count: 0 };
