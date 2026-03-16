@@ -68,8 +68,13 @@ export async function uploadExcelAction(formData: FormData) {
             });
 
             const findValue = (rowObj: any, keywords: string[]) => {
-                const foundKey = Object.keys(rowObj).find(k =>
-                    keywords.some(kw => k.includes(kw) || kw.includes(k))
+                // 1. 완전 일치(Exact Match) 우선
+                let foundKey = Object.keys(rowObj).find(k => keywords.includes(k));
+                if (foundKey) return rowObj[foundKey];
+
+                // 2. 부분 일치(Fallback)
+                foundKey = Object.keys(rowObj).find(k =>
+                    keywords.some(kw => k.includes(kw))
                 );
                 return foundKey ? rowObj[foundKey] : null;
             };
