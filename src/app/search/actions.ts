@@ -13,6 +13,7 @@ export async function searchMembersAction(query: string) {
             { name: { contains: query, mode: 'insensitive' } },
             { buddhistName: { contains: query, mode: 'insensitive' } },
             { temple: { contains: query, mode: 'insensitive' } },
+            { position: { contains: query, mode: 'insensitive' } },
             { templePosition: { contains: query, mode: 'insensitive' } },
             { division: { contains: query, mode: 'insensitive' } }
         ];
