@@ -10,9 +10,11 @@ export async function searchMembersAction(query: string) {
 
     if (query) {
         where.OR = [
-            { name: { contains: query } },
-            { buddhistName: { contains: query } },
-            { temple: { contains: query } }
+            { name: { contains: query, mode: 'insensitive' } },
+            { buddhistName: { contains: query, mode: 'insensitive' } },
+            { temple: { contains: query, mode: 'insensitive' } },
+            { templePosition: { contains: query, mode: 'insensitive' } },
+            { division: { contains: query, mode: 'insensitive' } }
         ];
     } else {
         // 쿼리가 없는 경우 검색 결과를 반환하지 않음
