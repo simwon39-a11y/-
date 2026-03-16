@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache';
  */
 export async function uploadExcelAction(formData: FormData) {
     const startTime = Date.now();
-    const TIMEOUT_LIMIT = 8500;
+    const TIMEOUT_LIMIT = 13500; // 8.5초 -> 13.5초 연장
 
     try {
         const file = formData.get('excel-file') as File;
@@ -117,11 +117,9 @@ export async function uploadExcelAction(formData: FormData) {
                             const oldVal = String(existing[key] || '');
                             const newVal = String(currentData[key] || '');
 
-                            const isNewBetter = (newVal.length > oldVal.length && !newVal.includes('...')) ||
-                                (oldVal.includes('...') && !newVal.includes('...'));
-
-                            if (isNewBetter && newVal) {
-                                merged[key] = currentData[key];
+                            // 새 데이터가 비어있지 않다면 무조건 덮어씌움 (글자 수정 등 온전한 반영)
+                            if (newVal && newVal.trim() !== '') {
+                                merged[key] = newVal.trim();
                             }
                         });
                         memberMap.set(cleanPhone, merged);
