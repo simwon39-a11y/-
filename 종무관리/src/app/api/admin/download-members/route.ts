@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import * as XLSX from 'xlsx';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
     try {
         const users = await db.user.findMany({
@@ -18,8 +20,8 @@ export async function GET(req: NextRequest) {
             '신분': u.status || '',
             '직책': u.position || '',
             '소속사찰': u.temple || '',
-            '소속분회': u.templePosition || '',
-            '우편번호': u.postalCode || '',
+            '소속사찰 직위': u.templePosition || '',
+            '분회': u.division || '',
             '사찰주소': u.templeAddress || ''
         }));
 
@@ -35,6 +37,9 @@ export async function GET(req: NextRequest) {
             headers: {
                 'Content-Disposition': `attachment; filename="buddhist_members_${new Date().toISOString().slice(0, 10)}.xlsx"`,
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
             }
         });
     } catch (e: any) {

@@ -109,7 +109,7 @@ export default function MemberSearch() {
                                             }}>
                                                 {member.templeAddress ? (
                                                     <>
-                                                        {member.postalCode && <span style={{ color: '#888', marginRight: '6px' }}>[{member.postalCode}]</span>}
+                                                        {member.division && <span style={{ color: '#888', marginRight: '6px' }}>[{member.division}]</span>}
                                                         {member.templeAddress}
                                                     </>
                                                 ) : '-'}

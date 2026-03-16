@@ -104,7 +104,7 @@ export async function uploadExcelAction(formData: FormData) {
                         // '소속사찰'이 '소속사찰직위'를 잘못 잡아먹지 않도록, 긴 단어를 먼저 찾습니다.
                         templePosition: findValue(normalizedRow, ['소속사찰직위', '소속분회', '분회']),
                         temple: findValue(normalizedRow, ['소속사찰', '사찰명', '사찰']),
-                        postalCode: findValue(normalizedRow, ['우편번호']),
+                        division: findValue(normalizedRow, ['분회']),
                         templeAddress: findValue(normalizedRow, ['사찰주소', '주소']),
                     };
 
@@ -154,7 +154,7 @@ export async function uploadExcelAction(formData: FormData) {
                             position: m.position || null,
                             temple: m.temple || null,
                             templePosition: m.templePosition || null,
-                            postalCode: m.postalCode || null,
+                            division: m.division || null,
                             templeAddress: m.templeAddress || null,
                         },
                         create: {
@@ -167,7 +167,7 @@ export async function uploadExcelAction(formData: FormData) {
                             position: m.position || null,
                             temple: m.temple || null,
                             templePosition: m.templePosition || null,
-                            postalCode: m.postalCode || null,
+                            division: m.division || null,
                             templeAddress: m.templeAddress || null,
                         },
                     });

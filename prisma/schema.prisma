@@ -23,6 +23,7 @@ model User {
   postalCode       String?
   templeAddress    String?
   templePosition   String?
+  division         String?
   comments         Comment[]
   receivedMessages Message[] @relation("ReceivedMessages")
   sentMessages     Message[] @relation("SentMessages")
