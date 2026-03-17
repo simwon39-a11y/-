@@ -94,7 +94,11 @@ export async function uploadExcelAction(formData: FormData) {
             }
 
             if (phone) {
-                const cleanPhone = phone.replace(/-/g, '').replace(/\s/g, '');
+                let cleanPhone = phone.replace(/-/g, '').replace(/\s/g, '');
+                if (!cleanPhone.startsWith('0') && cleanPhone.length >= 9 && cleanPhone.length <= 10) {
+                    cleanPhone = '0' + cleanPhone;
+                }
+
                 if (cleanPhone.length >= 9) {
                     const existing = memberMap.get(cleanPhone);
                     const currentData = {
