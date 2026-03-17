@@ -5,8 +5,45 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createPostAction } from '../actions';
 
-// 클라이언트 컴포넌트에서 @prisma/client 임포트 시 오류가 발생하므로 로컬 타입 정의
 type PostCategory = 'NOTICE' | 'RESOURCE' | 'FREE';
+
+// 클라이언트 사이드 이미지 압축 함수
+const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const MAX_SIZE = 1200; // 최대 해상도를 1200px으로 제한
+
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    resolve(blob || file); // 실패 시 원본 반환
+                }, 'image/jpeg', 0.8); // 80% 품질 압축
+            };
+        };
+    });
+};
 
 function NewPostForm() {
     const router = useRouter();
@@ -69,7 +106,13 @@ function NewPostForm() {
         formData.append('content', content);
         formData.append('category', category);
         formData.append('authorId', currentUser.id.toString());
-        selectedFiles.forEach(file => formData.append('images', file));
+
+        // 이미지 압축 처리 후 FormData에 추가
+        for (const file of selectedFiles) {
+            const compressedBlob = await compressImage(file);
+            // Blob을 전송할 때는 원본 파일명을 매개변수로 명시해주는 것이 좋습니다.
+            formData.append('images', compressedBlob, file.name);
+        }
 
         startTransition(async () => {
             const res = await createPostAction(formData);
