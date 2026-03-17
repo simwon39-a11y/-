@@ -173,7 +173,7 @@ export default function DashboardClient({
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>종무 소통 시스템</h1>
                 <p style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '5px' }}>
-                    {user?.name} 법사님, 반갑습니다.
+                    {user?.buddhistName ? `${user.buddhistName} 님` : `${user?.name} 님`}, 반갑습니다.
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '13px', color: '#888', marginBottom: '15px' }}>
                     <span>버전: v17.2</span>
