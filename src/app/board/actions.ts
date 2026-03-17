@@ -25,6 +25,7 @@ export async function getPostsByCategoryAction(category: PostCategory, limit: nu
                     buddhistName
                 ),
                 images:PostImage (
+                    id,
                     url
                 )
             `)
@@ -114,7 +115,8 @@ export async function createPostAction(formData: FormData) {
             for (const file of files) {
                 if (file.size === 0) continue;
 
-                const fileName = `${Date.now()}_${file.name}`;
+                const extension = file.name.split('.').pop() || 'jpg';
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extension}`;
                 const { error: uploadError } = await supabase.storage
                     .from('images')
                     .upload(fileName, file);
