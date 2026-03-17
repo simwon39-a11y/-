@@ -12,13 +12,7 @@ import { refreshAppBadge } from '@/lib/badgeClient';
 const formatUserTitle = (user: any) => {
     if (!user) return '사용자';
     const nameStr = user.buddhistName || user.name;
-    if (user.status) {
-        if (user.status.includes('스님')) {
-            return `${nameStr} 스님`; // 스님님 방지
-        }
-        return `${nameStr} ${user.status}님`;
-    }
-    return `${nameStr} 법사님`; // 기본값 fallback
+    return `${nameStr}님`;
 };
 
 

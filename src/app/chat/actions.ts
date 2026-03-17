@@ -42,10 +42,7 @@ export async function sendMessageAction(senderId: number, receiverId: number, te
     try {
         const sender = message.sender;
         const nameStr = sender.buddhistName || sender.name;
-        // status가 '스님'인 경우님을 붙이지 않음
-        const senderTitle = sender.status
-            ? (sender.status.includes('스님') ? `${nameStr} 스님` : `${nameStr} ${sender.status}님`)
-            : `${nameStr} 법사님`;
+        const senderTitle = `${nameStr}님`;
 
         await sendPushNotification(
             receiverId,
