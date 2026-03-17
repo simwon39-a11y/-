@@ -19,7 +19,7 @@ const compressImage = (file: File): Promise<Blob> => {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const MAX_SIZE = 1200; // 최대 해상도를 1200px으로 제한
+                const MAX_SIZE = 1600; // 최대 해상도를 1600px으로 상향
 
                 if (width > height) {
                     if (width > MAX_SIZE) {
@@ -39,7 +39,7 @@ const compressImage = (file: File): Promise<Blob> => {
                 ctx?.drawImage(img, 0, 0, width, height);
                 canvas.toBlob((blob) => {
                     resolve(blob || file); // 실패 시 원본 반환
-                }, 'image/jpeg', 0.8); // 80% 품질 압축
+                }, 'image/jpeg', 0.85); // 85% 품질로 상향
             };
         };
     });
