@@ -149,7 +149,7 @@ export default function DashboardClient({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: user.id,
-                    subscription: JSON.parse(JSON.stringify(subscription))
+                    subscription: subscription.toJSON()
                 })
             });
 

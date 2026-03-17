@@ -32,7 +32,10 @@ export default function PushSubscriptionHandler({ userId }: { userId: number }) 
                 await fetch('/api/push/subscribe', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, subscription })
+                    body: JSON.stringify({
+                        userId,
+                        subscription: subscription.toJSON() // toJSON()을 호출해야 keys가 누락되지 않습니다.
+                    })
                 });
 
             } catch (error) {
