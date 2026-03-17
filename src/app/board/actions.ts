@@ -156,6 +156,14 @@ export async function createPostAction(formData: FormData) {
 
     } catch (error: any) {
         console.error('게시물 등록 중 오류:', error);
+
+        if (error?.code === '23503') {
+            return {
+                success: false,
+                message: '로그인 정보가 유효하지 않습니다. 로그아웃 후 다시 로그인해 주세요.'
+            };
+        }
+
         return {
             success: false,
             message: '등록 중 문제가 발생했습니다. (잠시 후 다시 시도해 주세요)'
@@ -198,8 +206,16 @@ export async function createCommentAction(postId: number, authorId: number, text
 
         return { success: true };
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('댓글 등록 오류:', error);
+
+        if (error?.code === '23503') {
+            return {
+                success: false,
+                message: '로그인 정보가 유효하지 않습니다. 로그아웃 후 다시 로그인해 주세요.'
+            };
+        }
+
         return { success: false, message: '댓글 등록 중 오류가 발생했습니다.' };
     }
 }
