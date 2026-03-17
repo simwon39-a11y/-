@@ -75,7 +75,7 @@ function NewPostForm() {
             const res = await createPostAction(formData);
             if (res.success) {
                 alert('등록되었습니다.');
-                router.push('/board');
+                window.location.href = '/board?cat=' + category;
             } else {
                 alert(res.message);
             }
