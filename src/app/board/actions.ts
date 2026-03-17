@@ -23,6 +23,9 @@ export async function getPostsByCategoryAction(category: PostCategory, limit: nu
                 author:User (
                     name,
                     buddhistName
+                ),
+                images:PostImage (
+                    url
                 )
             `)
             .eq('category', category)
