@@ -40,9 +40,16 @@ export async function sendMessageAction(senderId: number, receiverId: number, te
 
     // 상대방에게 푸시 알림을 보냅니다.
     try {
+        const sender = message.sender;
+        const nameStr = sender.buddhistName || sender.name;
+        // status가 '스님'인 경우님을 붙이지 않음
+        const senderTitle = sender.status
+            ? (sender.status.includes('스님') ? `${nameStr} 스님` : `${nameStr} ${sender.status}님`)
+            : `${nameStr} 법사님`;
+
         await sendPushNotification(
             receiverId,
-            `${message.sender.name} 법사님`,
+            senderTitle,
             text,
             `/chat?to=${senderId}`
         );
@@ -59,7 +66,7 @@ export async function sendMessageAction(senderId: number, receiverId: number, te
 export async function getUserInfoAction(userId: number) {
     return await db.user.findUnique({
         where: { id: userId },
-        select: { id: true, name: true, buddhistName: true }
+        select: { id: true, name: true, buddhistName: true, status: true }
     });
 }
 
@@ -79,8 +86,8 @@ export async function getChatListAction(myId: number) {
             createdAt: 'desc'
         },
         include: {
-            sender: { select: { id: true, name: true, buddhistName: true } },
-            receiver: { select: { id: true, name: true, buddhistName: true } }
+            sender: { select: { id: true, name: true, buddhistName: true, status: true } },
+            receiver: { select: { id: true, name: true, buddhistName: true, status: true } }
         }
     });
 

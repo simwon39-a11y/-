@@ -8,6 +8,19 @@ import { searchMembersAction } from '@/app/search/actions';
 import { markChatAsReadAction } from '@/app/api/unread/actions';
 import { refreshAppBadge } from '@/lib/badgeClient';
 
+// 직책/상태에 따른 호칭 포맷 헬퍼 함수
+const formatUserTitle = (user: any) => {
+    if (!user) return '사용자';
+    const nameStr = user.buddhistName || user.name;
+    if (user.status) {
+        if (user.status.includes('스님')) {
+            return `${nameStr} 스님`; // 스님님 방지
+        }
+        return `${nameStr} ${user.status}님`;
+    }
+    return `${nameStr} 법사님`; // 기본값 fallback
+};
+
 
 function ChatContent() {
     const searchParams = useSearchParams();
@@ -113,7 +126,7 @@ function ChatContent() {
                             <div className="card" style={{ marginBottom: '10px', padding: '15px', display: 'flex', alignItems: 'center', gap: '15px', borderLeft: chat.isRead ? '1px solid var(--border-color)' : '4px solid red' }}>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                        <span style={{ fontWeight: 'bold', fontSize: '18px' }}>{chat.user.buddhistName || chat.user.name} 법사님</span>
+                                        <span style={{ fontWeight: 'bold', fontSize: '18px' }}>{formatUserTitle(chat.user)}</span>
                                         <span style={{ fontSize: '12px', color: '#999' }}>{new Date(chat.lastTime).toLocaleDateString()}</span>
                                     </div>
                                     <div style={{ fontSize: '15px', color: chat.isRead ? '#666' : '#000', fontWeight: chat.isRead ? 'normal' : 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -170,7 +183,7 @@ function ChatContent() {
         <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
             <header style={{ padding: 'var(--spacing-md)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', backgroundColor: 'white' }}>
                 <h1 style={{ fontSize: '24px', color: 'var(--accent-primary)', margin: 0 }}>
-                    {otherUser ? `${otherUser.buddhistName || otherUser.name} 법사님` : '대화 중...'}
+                    {otherUser ? formatUserTitle(otherUser) : '대화 중...'}
                 </h1>
                 <Link href="/chat" style={{ textDecoration: 'none', color: 'var(--text-secondary)' }}>나가기</Link>
             </header>
