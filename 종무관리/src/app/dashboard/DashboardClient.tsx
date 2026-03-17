@@ -160,37 +160,43 @@ export default function DashboardClient({
 
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>종무 소통 시스템</h1>
-                <p style={{ color: 'var(--text-secondary)' }}>{user?.name} 법사님, 반갑습니다.</p>
-                <div
-                    onClick={() => {
-                        if (confirm('v15 버전으로 즉시 업데이트하시겠습니까?')) {
-                            if ('serviceWorker' in navigator) {
-                                navigator.serviceWorker.getRegistrations().then(registrations => {
-                                    for (let registration of registrations) {
-                                        registration.unregister();
-                                    }
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '5px' }}>{user?.name} 법사님, 반갑습니다.</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '13px', color: '#888', marginBottom: '15px' }}>
+                    <span>버전: v17.2</span>
+                    <button
+                        onClick={() => {
+                            if (confirm('v17.2 버전으로 즉시 업데이트하시겠습니까?')) {
+                                if ('serviceWorker' in navigator) {
+                                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                                        for (let registration of registrations) {
+                                            registration.unregister();
+                                        }
+                                        window.location.href = '/?update=' + Date.now();
+                                    });
+                                } else {
                                     window.location.href = '/?update=' + Date.now();
-                                });
-                            } else {
-                                window.location.href = '/?update=' + Date.now();
+                                }
                             }
-                        }
-                    }}
-                    style={{
-                        fontSize: '14px',
-                        color: '#fff',
-                        background: 'DodgerBlue',
-                        padding: '8px 15px',
-                        borderRadius: '8px',
-                        marginTop: '10px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        display: 'inline-block',
-                        marginBottom: '10px'
-                    }}
-                >
-                    [여기를 눌러 v17.2 업데이트] <br />
-                    현재 버전: 2026.03.14-v17.2 (동기화 삭제 누락 방어 로직 강화)
+                        }}
+                        style={{
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '28px',
+                            height: '28px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 1px 4px rgba(0,123,255,0.3)',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                        }}
+                        title="새 버전 업데이트 (캐시 삭제)"
+                    >
+                        UP
+                    </button>
                 </div>
 
                 {isSubscribed === false && (

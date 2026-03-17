@@ -38,6 +38,7 @@ export default function DashboardClient({
     );
     const [badgeStatus, setBadgeStatus] = useState<string>('대기 중');
     const [lastBadgeValue, setLastBadgeValue] = useState<number>(0);
+    const [showDiag, setShowDiag] = useState<boolean>(false);
     const router = useRouter();
 
     const fetchUnread = async () => {
@@ -172,19 +173,24 @@ export default function DashboardClient({
 
             <header style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
                 <h1 style={{ color: 'var(--accent-primary)', fontSize: '32px' }}>종무 소통 시스템</h1>
-                <p style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                <p style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '5px' }}>
                     {user?.name} 법사님, 반갑습니다.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '13px', color: '#888', marginBottom: '15px' }}>
+                    <span>버전: v17.2</span>
                     <button
                         onClick={() => {
-                            if ('serviceWorker' in navigator) {
-                                navigator.serviceWorker.getRegistrations().then(registrations => {
-                                    for (let registration of registrations) {
-                                        registration.unregister();
-                                    }
+                            if (confirm('v17.2 버전으로 즉시 업데이트하시겠습니까?')) {
+                                if ('serviceWorker' in navigator) {
+                                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                                        for (let registration of registrations) {
+                                            registration.unregister();
+                                        }
+                                        window.location.href = '/?update=' + Date.now();
+                                    });
+                                } else {
                                     window.location.href = '/?update=' + Date.now();
-                                });
-                            } else {
-                                window.location.href = '/?update=' + Date.now();
+                                }
                             }
                         }}
                         style={{
@@ -192,13 +198,13 @@ export default function DashboardClient({
                             color: 'white',
                             border: 'none',
                             borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
+                            width: '28px',
+                            height: '28px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(0,123,255,0.4)',
-                            fontSize: '14px',
+                            boxShadow: '0 1px 4px rgba(0,123,255,0.3)',
+                            fontSize: '11px',
                             fontWeight: 'bold',
                             cursor: 'pointer'
                         }}
@@ -206,37 +212,6 @@ export default function DashboardClient({
                     >
                         UP
                     </button>
-                </p>
-                <div
-                    onClick={() => {
-                        if (confirm('v17.2 버전으로 즉시 업데이트하시겠습니까?')) {
-                            if ('serviceWorker' in navigator) {
-                                navigator.serviceWorker.getRegistrations().then(registrations => {
-                                    for (let registration of registrations) {
-                                        registration.unregister();
-                                    }
-                                    window.location.href = '/?update=' + Date.now();
-                                });
-                            } else {
-                                window.location.href = '/?update=' + Date.now();
-                            }
-                        }
-                    }}
-                    style={{
-                        fontSize: '14px',
-                        color: '#fff',
-                        background: 'DodgerBlue',
-                        padding: '8px 15px',
-                        borderRadius: '8px',
-                        marginTop: '10px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        display: 'inline-block',
-                        marginBottom: '10px'
-                    }}
-                >
-                    [여기를 눌러 v17.2 업데이트] <br />
-                    현재 버전: 2026.03.14-v17.2
                 </div>
 
                 {isSubscribed === false && (
@@ -384,81 +359,94 @@ export default function DashboardClient({
 
             {/* 배지 진단 도구 (개발/테스트용) */}
             <div style={{ marginTop: '40px', padding: '15px', border: '1px dashed #ccc', borderRadius: '10px', backgroundColor: '#f9f9f9' }}>
-                <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#666' }}>🔧 배지 및 알림 진단</h4>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                    <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', flex: 1, minWidth: '140px' }}>
-                        <b>논리적 읽지 않음:</b> {unreadDetails?.totalUnread ?? 0}개
-                    </div>
-                    <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '12px', flex: 1, minWidth: '140px' }}>
-                        <b>배지 전송 값:</b> {lastBadgeValue}개
-                    </div>
-                    <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '12px', flex: 1, minWidth: '140px' }}>
-                        <b>전송 상태:</b> {badgeStatus}
-                    </div>
-                </div>
-                <div style={{ marginTop: '10px', display: 'flex', gap: '5px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showDiag ? '10px' : '0' }}>
+                    <h4 style={{ margin: '0', fontSize: '14px', color: '#666' }}>🔧 배지 및 알림 진단</h4>
                     <button
-                        onClick={async () => {
-                            await fetchUnread();
-                            alert('새로고침 완료!');
-                        }}
-                        style={{ flex: 1, padding: '8px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px' }}
+                        onClick={() => setShowDiag(!showDiag)}
+                        style={{ padding: '4px 8px', fontSize: '11px', cursor: 'pointer', borderRadius: '4px', background: '#e0e0e0', border: '1px solid #ccc', color: '#333' }}
                     >
-                        🔄 숫자 즉시 갱신
-                    </button>
-                    <button
-                        onClick={async () => {
-                            const { sendTestPushAction } = await import('@/app/dashboard/actions');
-                            const res = await sendTestPushAction();
-                            alert(res?.message || '테스트 요청 보냄');
-                        }}
-                        style={{ flex: 1, padding: '8px', fontSize: '11px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#e3f2fd', border: '1px solid #2196f3', color: '#1976d2' }}
-                    >
-                        📲 배경 테스트(7)
-                    </button>
-                    <button
-                        onClick={async () => {
-                            if ('setAppBadge' in navigator) {
-                                try {
-                                    await (navigator as any).setAppBadge(99);
-                                    alert('아이콘에 숫자 99를 직접 요청했습니다! 바탕화면으로 나가서 확인해 보세요.');
-                                } catch (e) {
-                                    alert('배지 설정 실패: ' + e);
-                                }
-                            } else {
-                                alert('이 브라우저는 배지 기능을 지원하지 않습니다.');
-                            }
-                        }}
-                        style={{ flex: 1, padding: '8px', fontSize: '11px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#f3e5f5', border: '1px solid #9c27b0', color: '#7b1fa2' }}
-                    >
-                        ⚡ 즉시 테스트(99)
+                        {showDiag ? '접기' : '열기'}
                     </button>
                 </div>
-                <p style={{ margin: '10px 0 0 0', fontSize: '11px', color: '#999' }}>
-                    ※ <b>알림창에는 숫자가 뜨는데 아이콘에만 안 뜬다면?</b><br />
-                    삼성폰 설정: <b>[설정 &gt; 알림 &gt; 고급 설정 &gt; 앱 아이콘 배지]</b>를 반드시 '켜기' 및 '숫자'로 설정해 주세요.
-                </p>
-                <div style={{ marginTop: '10px' }}>
-                    <button
-                        onClick={async () => {
-                            if (confirm('전체 초기화를 진행하시겠습니까? (서버의 중복 기기 정보와 폰의 옛날 기록을 모두 삭제하고 새로 시작합니다)')) {
-                                if ('serviceWorker' in navigator) {
-                                    const regs = await navigator.serviceWorker.getRegistrations();
-                                    for (const reg of regs) await reg.unregister();
-                                }
-                                const { clearAllSubscriptionsAction } = await import('@/app/dashboard/actions');
-                                await clearAllSubscriptionsAction();
-                                localStorage.clear();
-                                document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                                alert('서버와 기기 초기화 완료! 이제 새로고침을 여러 번 해서 v4 버전이 나오면 그때 다시 사용해 주세요.');
-                                window.location.reload();
-                            }
-                        }}
-                        style={{ width: '100%', padding: '10px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#ffebee', border: '1px solid #ef5350', color: '#c62828', fontWeight: 'bold' }}
-                    >
-                        🚨 서버+기기 초강력 초기화 (중복 제거 & 재설치)
-                    </button>
-                </div>
+
+                {showDiag && (
+                    <>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                            <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', flex: 1, minWidth: '140px' }}>
+                                <b>논리적 읽지 않음:</b> {unreadDetails?.totalUnread ?? 0}개
+                            </div>
+                            <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '12px', flex: 1, minWidth: '140px' }}>
+                                <b>배지 전송 값:</b> {lastBadgeValue}개
+                            </div>
+                            <div style={{ backgroundColor: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '12px', flex: 1, minWidth: '140px' }}>
+                                <b>전송 상태:</b> {badgeStatus}
+                            </div>
+                        </div>
+                        <div style={{ marginTop: '10px', display: 'flex', gap: '5px' }}>
+                            <button
+                                onClick={async () => {
+                                    await fetchUnread();
+                                    alert('새로고침 완료!');
+                                }}
+                                style={{ flex: 1, padding: '8px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px' }}
+                            >
+                                🔄 숫자 즉시 갱신
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    const { sendTestPushAction } = await import('@/app/dashboard/actions');
+                                    const res = await sendTestPushAction();
+                                    alert(res?.message || '테스트 요청 보냄');
+                                }}
+                                style={{ flex: 1, padding: '8px', fontSize: '11px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#e3f2fd', border: '1px solid #2196f3', color: '#1976d2' }}
+                            >
+                                📲 배경 테스트(7)
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    if ('setAppBadge' in navigator) {
+                                        try {
+                                            await (navigator as any).setAppBadge(99);
+                                            alert('아이콘에 숫자 99를 직접 요청했습니다! 바탕화면으로 나가서 확인해 보세요.');
+                                        } catch (e) {
+                                            alert('배지 설정 실패: ' + e);
+                                        }
+                                    } else {
+                                        alert('이 브라우저는 배지 기능을 지원하지 않습니다.');
+                                    }
+                                }}
+                                style={{ flex: 1, padding: '8px', fontSize: '11px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#f3e5f5', border: '1px solid #9c27b0', color: '#7b1fa2' }}
+                            >
+                                ⚡ 즉시 테스트(99)
+                            </button>
+                        </div>
+                        <p style={{ margin: '10px 0 0 0', fontSize: '11px', color: '#999' }}>
+                            ※ <b>알림창에는 숫자가 뜨는데 아이콘에만 안 뜬다면?</b><br />
+                            삼성폰 설정: <b>[설정 &gt; 알림 &gt; 고급 설정 &gt; 앱 아이콘 배지]</b>를 반드시 '켜기' 및 '숫자'로 설정해 주세요.
+                        </p>
+                        <div style={{ marginTop: '10px' }}>
+                            <button
+                                onClick={async () => {
+                                    if (confirm('전체 초기화를 진행하시겠습니까? (서버의 중복 기기 정보와 폰의 옛날 기록을 모두 삭제하고 새로 시작합니다)')) {
+                                        if ('serviceWorker' in navigator) {
+                                            const regs = await navigator.serviceWorker.getRegistrations();
+                                            for (const reg of regs) await reg.unregister();
+                                        }
+                                        const { clearAllSubscriptionsAction } = await import('@/app/dashboard/actions');
+                                        await clearAllSubscriptionsAction();
+                                        localStorage.clear();
+                                        document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                                        alert('서버와 기기 초기화 완료! 이제 새로고침을 여러 번 해서 v4 버전이 나오면 그때 다시 사용해 주세요.');
+                                        window.location.reload();
+                                    }
+                                }}
+                                style={{ width: '100%', padding: '10px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px', backgroundColor: '#ffebee', border: '1px solid #ef5350', color: '#c62828', fontWeight: 'bold' }}
+                            >
+                                🚨 서버+기기 초강력 초기화 (중복 제거 & 재설치)
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
 
             <style dangerouslySetInnerHTML={{
