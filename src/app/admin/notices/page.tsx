@@ -6,6 +6,46 @@ import { useRouter } from 'next/navigation';
 import { createPostAction } from '@/app/board/actions';
 import AdminGuard from '@/components/AdminGuard';
 
+// 클라이언트 사이드 이미지 압축 함수
+const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onerror = () => resolve(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onerror = () => resolve(file);
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const MAX_SIZE = 1600;
+
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    resolve(blob || file);
+                }, 'image/jpeg', 0.85);
+            };
+        };
+    });
+};
+
 export default function AdminNoticeWrite() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -60,9 +100,12 @@ export default function AdminNoticeWrite() {
         formData.append('content', content);
         formData.append('category', 'NOTICE');
         formData.append('authorId', currentUser.id.toString());
-        selectedFiles.forEach((file) => {
-            formData.append('images', file);
-        });
+
+        // 이미지 압축 처리 후 FormData에 추가
+        for (const file of selectedFiles) {
+            const compressedBlob = await compressImage(file);
+            formData.append('images', compressedBlob, file.name);
+        }
 
         startTransition(async () => {
             const res = await createPostAction(formData);
