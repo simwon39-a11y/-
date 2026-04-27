@@ -1,5 +1,4 @@
-import fetch from 'node-fetch';
-
+// using native fetch
 async function main() {
     const url = 'https://dqvxrvtauxawwxeyzdtx.supabase.co/storage/v1/object/public/images/1773722828151_KakaoTalk_20260219_111924393.jpg';
     console.log(`--- Testing URL Access: ${url} ---`);
