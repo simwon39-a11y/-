@@ -16,7 +16,7 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
     const [isLoading, setIsLoading] = useState(true);
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [detailLoadingId, setDetailLoadingId] = useState<number | null>(null);
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [previewImageState, setPreviewImageState] = useState<{ images: any[], currentIndex: number } | null>(null);
     const [commentText, setCommentText] = useState<{ [postId: number]: string }>({});
     const [isPending, startTransition] = useTransition();
 
@@ -170,7 +170,7 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                             <img
                                 key={img.id}
                                 src={img.url}
-                                onClick={(e) => { e.stopPropagation(); setPreviewImage(img.url); }}
+                                onClick={(e) => { e.stopPropagation(); setPreviewImageState({ images: post.images, currentIndex: post.images.findIndex((i: any) => i.id === img.id) }); }}
                                 style={{ width: '100%', height: '60px', objectFit: 'cover', borderRadius: '4px', cursor: 'zoom-in' }}
                             />
                         ))}
@@ -280,9 +280,28 @@ function BoardContent({ activeCategory }: { activeCategory: PostCategory | null 
                 </>
             )}
 
-            {previewImage && (
-                <div onClick={() => setPreviewImage(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'zoom-out' }}>
-                    <img src={previewImage} style={{ maxWidth: '95%', maxHeight: '95%', borderRadius: '8px' }} />
+            {previewImageState && (
+                <div onClick={() => setPreviewImageState(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'zoom-out' }}>
+                    {previewImageState.currentIndex > 0 && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setPreviewImageState(prev => prev ? { ...prev, currentIndex: prev.currentIndex - 1 } : null); }}
+                            style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', fontSize: '30px', cursor: 'pointer', padding: '15px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            &#10094;
+                        </button>
+                    )}
+                    <img src={previewImageState.images[previewImageState.currentIndex].url} style={{ maxWidth: '85%', maxHeight: '85%', borderRadius: '8px', cursor: 'default' }} onClick={(e) => e.stopPropagation()} />
+                    {previewImageState.currentIndex < previewImageState.images.length - 1 && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setPreviewImageState(prev => prev ? { ...prev, currentIndex: prev.currentIndex + 1 } : null); }}
+                            style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', fontSize: '30px', cursor: 'pointer', padding: '15px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            &#10095;
+                        </button>
+                    )}
+                    <div style={{ position: 'absolute', bottom: '20px', color: '#fff', fontSize: '18px', fontWeight: 'bold' }}>
+                        {previewImageState.currentIndex + 1} / {previewImageState.images.length}
+                    </div>
                 </div>
             )}
 
