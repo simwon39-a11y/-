@@ -24,7 +24,7 @@ export async function loginAction(name: string, phone: string) {
         // 찾았다면 성공! 쿠키에 사용자 정보를 저장합니다 (30일 유지)
         const cookieStore = await cookies();
         cookieStore.set('user', JSON.stringify({ id: user.id, name: user.name }), {
-            maxAge: 60 * 60 * 24 * 30, // 30일
+            maxAge: 60 * 60 * 24 * 365, // 1년
             path: '/',
             httpOnly: false, // 클라이언트에서도 접근 가능하도록 (기존 로직 호환성 위해)
             secure: process.env.NODE_ENV === 'production',
